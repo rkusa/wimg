@@ -31,6 +31,23 @@ console.log('out', resultPtr, resultLen, resultCap)
 const result = new Uint8ClampedArray(exports.memory.buffer, resultPtr, resultLen)
 console.log(result.length)
 
+//
+// ENCODE
+//
+
+// encode image
+const encodedVec = exports.encode(resultPtr, resultLen, 372, 421);
 // deallocate result
 exports.dealloc_vec(outPtr);
 
+// read memory location of decoded image from memory
+const [encodedPtr, encodedLen, encodedCap] = new Uint32Array(exports.memory.buffer, encodedVec, 3);
+console.log('encoded', encodedPtr, encodedLen, encodedCap)
+
+// read decoded image from memory
+const encoded = new Uint8ClampedArray(exports.memory.buffer, encodedPtr, encodedLen)
+console.log(encoded.length)
+
+// write and deallocate encoded image
+await fsp.writeFile("result.jpg", Buffer.from(exports.memory.buffer, encodedPtr, encodedLen))
+exports.dealloc_vec(encodedVec);

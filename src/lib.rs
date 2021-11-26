@@ -25,7 +25,7 @@ impl VecParts {
 }
 
 #[no_mangle]
-unsafe fn decode(offset: i32, size: i32) -> *mut VecParts {
+unsafe fn decode(offset: u32, size: u32) -> *mut VecParts {
     println!("decode {} {}", offset, size);
 
     // TODO: error handling?
@@ -57,6 +57,46 @@ unsafe fn decode(offset: i32, size: i32) -> *mut VecParts {
 }
 
 #[no_mangle]
+unsafe fn encode(offset: u32, size: u32, width: u32, height: u32) -> *mut VecParts {
+    println!("encode {} {}", offset, size);
+
+    let mut err = mem::zeroed();
+    let mut cinfo: jpeg_compress_struct = mem::zeroed();
+    cinfo.common.err = jpeg_std_error(&mut err);
+    jpeg_create_compress(&mut cinfo);
+
+    let mut outsize = 0;
+    let mut outbuffer = std::ptr::null_mut();
+    jpeg_mem_dest(&mut cinfo, &mut outbuffer, &mut outsize);
+
+    cinfo.image_width = width;
+    cinfo.image_height = height;
+    cinfo.in_color_space = J_COLOR_SPACE::JCS_RGB;
+    cinfo.input_components = 3;
+    jpeg_set_defaults(&mut cinfo);
+
+    let row_stride = cinfo.image_width as usize * cinfo.input_components as usize;
+    cinfo.dct_method = J_DCT_METHOD::JDCT_ISLOW;
+    jpeg_set_quality(&mut cinfo, 80, true as boolean);
+
+    jpeg_start_compress(&mut cinfo, true as boolean);
+
+    let buffer = std::slice::from_raw_parts(offset as *const _, size as usize);
+    while cinfo.next_scanline < cinfo.image_height {
+        let offset = cinfo.next_scanline as usize * row_stride;
+        let jsamparray = [buffer[offset..].as_ptr()];
+        jpeg_write_scanlines(&mut cinfo, jsamparray.as_ptr(), 1);
+    }
+
+    jpeg_finish_compress(&mut cinfo);
+    jpeg_destroy_compress(&mut cinfo);
+
+    let buffer = std::slice::from_raw_parts(outbuffer, outsize as usize).to_vec();
+    println!("{:?}", &buffer[..16]);
+    VecParts::new(buffer)
+}
+
+#[no_mangle]
 pub unsafe fn alloc(size: usize) -> *mut u8 {
     use std::alloc::{alloc, Layout};
 
@@ -76,5 +116,6 @@ pub unsafe fn dealloc(ptr: *mut u8, size: usize) {
 #[no_mangle]
 pub unsafe fn dealloc_vec(ptr: *mut VecParts) {
     let boxed: Box<VecParts> = Box::from_raw(ptr);
+    println!("dealloc {} {}", boxed.len, boxed.cap);
     Vec::from_raw_parts(boxed.ptr as *mut u8, boxed.len as usize, boxed.cap as usize);
 }
