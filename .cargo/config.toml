@@ -1,0 +1,7 @@
+[build]
+# target = "wasm32-unknown-emscripten"
+target = "wasm32-wasi"
+
+[env]
+# EMMAKEN_CFLAGS = "-s ERROR_ON_UNDEFINED_SYMBOLS=0 -s STANDALONE_WASM -Os -nostdlib"
+# EMMAKEN_CFLAGS = "-s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s FILESYSTEM=0 -O3 -flto -nostdlib"
