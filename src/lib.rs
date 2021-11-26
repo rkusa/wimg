@@ -1,6 +1,7 @@
 #![allow(clippy::missing_safety_doc)]
 
 use mozjpeg_sys::*;
+use rgb::FromSlice;
 use std::mem::{self, ManuallyDrop};
 use std::os::raw::c_ulong;
 
@@ -18,7 +19,11 @@ pub struct VecParts {
 impl VecParts {
     pub fn new(v: Vec<u8>) -> *mut VecParts {
         let mut v = ManuallyDrop::new(v);
-        let boxed = Box::new(VecParts { ptr:v.as_mut_ptr() as u32, len: v.len() as u32, cap: v.capacity() as u32 });
+        let boxed = Box::new(VecParts {
+            ptr: v.as_mut_ptr() as u32,
+            len: v.len() as u32,
+            cap: v.capacity() as u32,
+        });
         println!("VecParts: {:?}", boxed);
         Box::into_raw(boxed)
     }
@@ -34,7 +39,7 @@ unsafe fn decode(offset: u32, size: u32) -> *mut VecParts {
     cinfo.common.err = jpeg_std_error(&mut err);
     jpeg_create_decompress(&mut cinfo);
 
-    jpeg_mem_src(&mut cinfo, offset as * const _, size as c_ulong);
+    jpeg_mem_src(&mut cinfo, offset as *const _, size as c_ulong);
     jpeg_read_header(&mut cinfo, true as boolean);
 
     cinfo.out_color_space = J_COLOR_SPACE::JCS_RGB;
@@ -94,6 +99,25 @@ unsafe fn encode(offset: u32, size: u32, width: u32, height: u32) -> *mut VecPar
     let buffer = std::slice::from_raw_parts(outbuffer, outsize as usize).to_vec();
     println!("{:?}", &buffer[..16]);
     VecParts::new(buffer)
+}
+
+#[no_mangle]
+fn resize(offset: u32, size: u32, w1: u32, h1: u32, w2: u32, h2: u32) -> *mut VecParts {
+    let mut resizer = resize::new(
+        w1 as usize,
+        h1 as usize,
+        w2 as usize,
+        h2 as usize,
+        resize::Pixel::RGB8,
+        resize::Type::Triangle,
+    )
+    .unwrap();
+
+    let src = unsafe { std::slice::from_raw_parts(offset as *const _, size as usize) };
+    let mut dst = vec![0u8; (w2 * h2 * 3) as usize];
+    resizer.resize(src.as_rgb(), dst.as_rgb_mut()).unwrap();
+
+    VecParts::new(dst)
 }
 
 #[no_mangle]

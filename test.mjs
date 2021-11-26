@@ -31,14 +31,26 @@ console.log('out', resultPtr, resultLen, resultCap)
 const result = new Uint8ClampedArray(exports.memory.buffer, resultPtr, resultLen)
 console.log(result.length)
 
+// RESIZE
+
+// resize image
+const resizedVec = exports.resize(resultPtr, resultLen, 372, 421, 161, 210);
+// deallocate result
+exports.dealloc_vec(outPtr);
+
+// read memory location of decoded image from memory
+const [resizedPtr, resizedLen, resizedCap] = new Uint32Array(exports.memory.buffer, resizedVec, 3);
+console.log('resized', resizedPtr, resizedLen, resizedCap)
+
+
 //
 // ENCODE
 //
 
 // encode image
-const encodedVec = exports.encode(resultPtr, resultLen, 372, 421);
-// deallocate result
-exports.dealloc_vec(outPtr);
+const encodedVec = exports.encode(resizedPtr, resizedLen, 161, 210);
+// deallocate resized
+exports.dealloc_vec(resizedVec);
 
 // read memory location of decoded image from memory
 const [encodedPtr, encodedLen, encodedCap] = new Uint32Array(exports.memory.buffer, encodedVec, 3);
