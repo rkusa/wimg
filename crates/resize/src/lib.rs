@@ -3,9 +3,6 @@
 use rgb::FromSlice;
 use wimg_common::VecParts;
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 #[no_mangle]
 fn resize(offset: u32, size: u32, w1: u32, h1: u32, w2: u32, h2: u32) -> *mut VecParts {
     println!("resize {} {} {} {} {} {}", offset, size, w1, h1, w2, h2);

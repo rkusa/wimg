@@ -5,9 +5,6 @@ use std::mem;
 use mozjpeg_sys::*;
 use wimg_common::VecParts;
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 #[no_mangle]
 pub unsafe fn decode(offset: u32, size: u32) -> *mut VecParts {
     println!("decode {} {}", offset, size);

@@ -8,5 +8,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 mozjpeg-sys = "1.0"
-wee_alloc = "0.4"
 wimg_common = { path = "../common" }

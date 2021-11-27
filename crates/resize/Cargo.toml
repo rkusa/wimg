@@ -9,5 +9,4 @@ crate-type = ["cdylib"]
 [dependencies]
 resize = "0.7"
 rgb = "0.8"
-wee_alloc = "0.4"
 wimg_common = { path = "../common" }
