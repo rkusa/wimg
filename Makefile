@@ -1,6 +1,8 @@
 .PHONY: build
 build:
-	PATH="$(shell pwd)/wasi-sdk-14.0/bin:${PATH}" cargo build --release
+	PATH="$(shell pwd)/wasi-sdk/dist/wasi-sdk-14.0/bin:${PATH}" \
+	CFLAGS="--sysroot=$(shell pwd)/wasi-sdk/dist/wasi-sdk-14.0/share/wasi-sysroot" \
+		cargo build --release
 
 .PHONY: build_docker
 build_docker:

@@ -34,7 +34,7 @@ console.log(result.length)
 // RESIZE
 
 // resize image
-const resizedVec = exports.resize(resultPtr, resultLen, 372, 421, 161, 210);
+const resizedVec = exports.resize(resultPtr, resultLen, 1024, 1024, 128, 128);
 // deallocate result
 exports.dealloc_vec(outPtr);
 
@@ -48,7 +48,7 @@ console.log('resized', resizedPtr, resizedLen, resizedCap)
 //
 
 // encode image
-const encodedVec = exports.encode(resizedPtr, resizedLen, 161, 210);
+const encodedVec = exports.encode(resizedPtr, resizedLen, 128, 128);
 // deallocate resized
 exports.dealloc_vec(resizedVec);
 
