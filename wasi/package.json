@@ -1,0 +1,13 @@
+{
+  "name": "wasi",
+  "version": "1.0.0",
+  "author": "Markus Ast",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild wasi.ts --bundle --format=esm --outfile=wasi.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.14.0"
+  }
+}

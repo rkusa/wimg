@@ -12,4 +12,4 @@ build_docker:
 
 .PHONY: test
 test:
-	node --experimental-wasi-unstable-preview1 test.mjs
+	node test.mjs

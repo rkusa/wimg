@@ -24,7 +24,6 @@ impl VecParts {
             len: v.len() as u32,
             cap: v.capacity() as u32,
         });
-        println!("VecParts: {:?}", boxed);
         Box::into_raw(boxed)
     }
 }
@@ -97,7 +96,6 @@ unsafe fn encode(offset: u32, size: u32, width: u32, height: u32) -> *mut VecPar
     jpeg_destroy_compress(&mut cinfo);
 
     let buffer = std::slice::from_raw_parts(outbuffer, outsize as usize).to_vec();
-    println!("{:?}", &buffer[..16]);
     VecParts::new(buffer)
 }
 
@@ -140,6 +138,5 @@ pub unsafe fn dealloc(ptr: *mut u8, size: usize) {
 #[no_mangle]
 pub unsafe fn dealloc_vec(ptr: *mut VecParts) {
     let boxed: Box<VecParts> = Box::from_raw(ptr);
-    println!("dealloc {} {}", boxed.len, boxed.cap);
     Vec::from_raw_parts(boxed.ptr as *mut u8, boxed.len as usize, boxed.cap as usize);
 }
