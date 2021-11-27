@@ -1,0 +1,14 @@
+{
+  "name": "wimg-worker",
+  "version": "1.0.0",
+  "main": "dist/worker.js",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^3.2.0",
+    "@tsconfig/recommended": "^1.0.1",
+    "esbuild": "^0.13.14",
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {
+    "wasi": "file:../wasi"
+  }
+}

@@ -1,6 +1,6 @@
 #![allow(clippy::missing_safety_doc)]
 
-use std::mem;
+use std::mem::{self, size_of};
 
 use mozjpeg_sys::*;
 use wimg_common::VecParts;
@@ -25,10 +25,15 @@ pub unsafe fn decode(offset: u32, size: u32) -> *mut VecParts {
 
     let row_stride = cinfo.image_width as usize * cinfo.output_components as usize;
     let buffer_size = row_stride * cinfo.image_height as usize;
-    let mut buffer = vec![0u8; buffer_size];
+    let dim_size = size_of::<u32>() * 2;
+    let mut buffer = vec![0u8; buffer_size + dim_size];
+
+    // write dimensions
+    buffer[..4].copy_from_slice(&cinfo.image_width.to_be_bytes()[..]);
+    buffer[4..8].copy_from_slice(&cinfo.image_height.to_be_bytes()[..]);
 
     while cinfo.output_scanline < cinfo.output_height {
-        let offset = cinfo.output_scanline as usize * row_stride;
+        let offset = dim_size + cinfo.output_scanline as usize * row_stride;
         let mut jsamparray = [buffer[offset..].as_mut_ptr()];
         jpeg_read_scanlines(&mut cinfo, jsamparray.as_mut_ptr(), 1);
     }

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "author": "Markus Ast",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "build": "esbuild example.ts --bundle --format=esm --platform=node --outfile=example.mjs"
   },

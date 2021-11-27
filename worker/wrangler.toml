@@ -1,0 +1,21 @@
+name = "wimg"
+type = "javascript"
+compatibility_date = "2021-11-10"
+workers_dev = true
+usage_model = "unbound"
+
+[build]
+command = "./build.sh"
+
+[build.upload]
+format = "modules"
+dir = "./dist"
+main = "./worker.js" # becomes "./src/worker.js"
+
+[[build.upload.rules]]
+type = "ESModule"
+globs = ["**/*.js"]
+
+[[build.upload.rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]

@@ -1,15 +1,38 @@
-import { promises as fsp } from "fs";
-import WASI from "./wasi";
-import { webcrypto } from "crypto";
+import WASI from "wasi/wasi";
+import wimg_jpeg_decode from "./wimg_jpeg_decode.wasm";
+import wimg_jpeg_encode from "./wimg_jpeg_encode.wasm";
+import wimg_resize from "./wimg_resize.wasm";
 
-// @ts-expect-error
-global.crypto = webcrypto;
+export default {
+  async fetch(_request: Request) {
+    const res = await fetch(
+      "https://images.pexels.com/photos/416682/pexels-photo-416682.jpeg?w=2000"
+    );
 
-async function decode(): Promise<[ArrayPtr, number, number]> {
-  const image = await fsp.readFile("./example.jpg");
+    console.time("transform");
 
+    const [ptr, imgWidth, imgHeight] = await decode(await res.arrayBuffer());
+    console.log("size", imgWidth, imgHeight);
+
+    const image = await encode(
+      await resize(ptr, imgWidth, imgHeight, 500, 333),
+      500,
+      333
+    );
+
+    console.timeEnd("transform");
+
+    return new Response(image, {
+      headers: {
+        "Content-Type": "image/jpeg",
+      },
+    });
+  },
+};
+
+async function decode(image: ArrayBuffer): Promise<[ArrayPtr, number, number]> {
   const jpeg_decode = (await WASI.instantiate<JpegDecode>(
-    fsp.readFile("../target/wasm32-wasi/release/wimg_jpeg_decode.wasm")
+    wimg_jpeg_decode
   )) as JpegDecode;
 
   // allocate memory for input image
@@ -18,7 +41,7 @@ async function decode(): Promise<[ArrayPtr, number, number]> {
 
   // write input image into memory
   new Uint8ClampedArray(jpeg_decode.memory.buffer, inPtr, image.byteLength).set(
-    image
+    new Uint8Array(image)
   );
 
   // decode and dealloc input image
@@ -26,13 +49,7 @@ async function decode(): Promise<[ArrayPtr, number, number]> {
   jpeg_decode.dealloc(inPtr, image.byteLength);
 
   // read memory location of decoded image from memory
-  const [resultPtr, resultLen] = new Uint32Array(
-    jpeg_decode.memory.buffer,
-    outPtr,
-    3
-  );
-  // console.log("out", resultPtr, resultLen, resultCap);
-
+  const [resultPtr] = new Uint32Array(jpeg_decode.memory.buffer, outPtr, 1);
   const dv = new DataView(jpeg_decode.memory.buffer, resultPtr, 8);
   const width = dv.getUint32(0, false);
   const height = dv.getUint32(4, false);
@@ -47,9 +64,7 @@ async function resize(
   w2: number,
   h2: number
 ) {
-  const resize = await WASI.instantiate<Resize>(
-    fsp.readFile("../target/wasm32-wasi/release/wimg_resize.wasm")
-  );
+  const resize = await WASI.instantiate<Resize>(wimg_resize);
 
   const input = ptr.asUint8Array();
 
@@ -78,10 +93,12 @@ async function resize(
   return new ArrayPtr(resize, outPtr);
 }
 
-async function encode(ptr: ArrayPtr) {
-  const jpeg_encode = await WASI.instantiate<JpegEncode>(
-    fsp.readFile("../target/wasm32-wasi/release/wimg_jpeg_encode.wasm")
-  );
+async function encode(
+  ptr: ArrayPtr,
+  width: number,
+  height: number
+): Promise<Uint8Array> {
+  const jpeg_encode = await WASI.instantiate<JpegEncode>(wimg_jpeg_encode);
 
   const input = ptr.asUint8Array();
 
@@ -96,7 +113,7 @@ async function encode(ptr: ArrayPtr) {
   ptr.dealloc();
 
   // encode image
-  const outPtr = jpeg_encode.encode(inPtr, input.byteLength, 128, 128);
+  const outPtr = jpeg_encode.encode(inPtr, input.byteLength, width, height);
 
   // read memory location of decoded image from memory
   const [encodedPtr, encodedLen, encodedCap] = new Uint32Array(
@@ -107,17 +124,7 @@ async function encode(ptr: ArrayPtr) {
   console.log("encoded", encodedPtr, encodedLen, encodedCap);
 
   // write and deallocate encoded image
-  await fsp.writeFile(
-    "result.jpg",
-    Buffer.from(jpeg_encode.memory.buffer, encodedPtr, encodedLen)
-  );
-  jpeg_encode.dealloc_vec(outPtr);
-}
-
-async function run() {
-  const [ptr, width, height] = await decode();
-  console.log("dimension", width, height);
-  await encode(await resize(ptr, width, height, 128, 128));
+  return new Uint8Array(jpeg_encode.memory.buffer, encodedPtr, encodedLen);
 }
 
 class ArrayPtr {
@@ -149,8 +156,6 @@ class ArrayPtr {
     this.module.dealloc_vec(this.ptr);
   }
 }
-
-run().catch(console.error);
 
 interface WimgCommon {
   readonly memory: WebAssembly.Memory;

@@ -7,14 +7,23 @@ export default class WASI {
   private constructor() {}
 
   public static async instantiate<T>(
-    bytes: BufferSource | PromiseLike<BufferSource>
+    bytes: BufferSource | PromiseLike<BufferSource> | WebAssembly.Module
   ): Promise<T> {
+    const b = await bytes;
+    let instance: WebAssembly.Instance;
     const wasi = new WASI();
-    const module = await WebAssembly.instantiate(await bytes, {
-      wasi_snapshot_preview1: wasi.imports(),
-    });
+    if (b instanceof WebAssembly.Module) {
+      instance = await WebAssembly.instantiate(b, {
+        wasi_snapshot_preview1: wasi.imports(),
+      });
+    } else {
+      const module = await WebAssembly.instantiate(b, {
+        wasi_snapshot_preview1: wasi.imports(),
+      });
+      instance = module.instance;
+    }
 
-    const exports = module.instance.exports;
+    const exports = instance.exports;
     if (!exports.memory || !(exports.memory instanceof WebAssembly.Memory)) {
       throw new TypeError("expected .memory export");
     }
@@ -30,8 +39,17 @@ export default class WASI {
     throw new Error("environ_get not implemented");
   }
 
-  private environ_sizes_get() {
-    throw new Error("environ_sizes_get not implemented");
+  private environ_sizes_get(
+    environcOffset: number,
+    _environBufferSizeOffset: number
+  ) {
+    if (!this.memory) {
+      throw new Error("memory not set");
+    }
+
+    const memoryView = new DataView(this.memory.buffer);
+    memoryView.setUint32(environcOffset, 0, true);
+    return ERRNO_SUCCESS;
   }
 
   private fd_close() {
