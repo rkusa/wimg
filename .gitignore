@@ -4,5 +4,4 @@
 target
 node_modules
 /wasi-sdk*
-/result.jpg
 *.wat

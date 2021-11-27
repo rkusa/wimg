@@ -1,0 +1,12 @@
+[package]
+name = "wimg_jpeg_encode"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+mozjpeg-sys = "1.0"
+wee_alloc = "0.4"
+wimg_common = { path = "../common" }

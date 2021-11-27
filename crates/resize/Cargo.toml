@@ -1,0 +1,13 @@
+[package]
+name = "wimg_resize"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+resize = "0.7"
+rgb = "0.8"
+wee_alloc = "0.4"
+wimg_common = { path = "../common" }

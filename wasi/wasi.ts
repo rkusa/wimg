@@ -4,6 +4,24 @@ const ERRNO_BADF = 8;
 export default class WASI {
   private memory?: WebAssembly.Memory;
 
+  private constructor() {}
+
+  public static async instantiate<T>(
+    bytes: BufferSource | PromiseLike<BufferSource>
+  ): Promise<T> {
+    const wasi = new WASI();
+    const module = await WebAssembly.instantiate(await bytes, {
+      wasi_snapshot_preview1: wasi.imports(),
+    });
+
+    const exports = module.instance.exports;
+    if (!exports.memory || !(exports.memory instanceof WebAssembly.Memory)) {
+      throw new TypeError("expected .memory export");
+    }
+    wasi.setMemory(exports.memory);
+    return exports as unknown as T;
+  }
+
   public setMemory(memory: WebAssembly.Memory) {
     this.memory = memory;
   }
@@ -68,11 +86,15 @@ export default class WASI {
     return ERRNO_SUCCESS;
   }
 
-  private proc_exit() {
-    throw new Error("proc_exit not implemented");
+  private proc_exit(rval: number) {
+    throw new Error(`WASM program exited with code: ${rval}`);
   }
 
   private random_get(offset: number, length: number) {
+    if (!this.memory) {
+      throw new Error("memory not set");
+    }
+
     const buffer = new Uint8Array(this.memory.buffer, offset, length);
     crypto.getRandomValues(buffer);
 
