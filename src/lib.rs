@@ -1,5 +1,8 @@
 #![allow(clippy::missing_safety_doc)]
 
+mod jpeg;
+mod resize;
+
 use std::mem::ManuallyDrop;
 
 #[repr(C)]

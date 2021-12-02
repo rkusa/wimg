@@ -264,30 +264,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
 
 [[package]]
-name = "wimg_common"
-version = "0.1.0"
-
-[[package]]
-name = "wimg_jpeg_decode"
+name = "wimg"
 version = "0.1.0"
 dependencies = [
  "mozjpeg-sys",
- "wimg_common",
-]
-
-[[package]]
-name = "wimg_jpeg_encode"
-version = "0.1.0"
-dependencies = [
- "mozjpeg-sys",
- "wimg_common",
-]
-
-[[package]]
-name = "wimg_resize"
-version = "0.1.0"
-dependencies = [
  "resize",
  "rgb",
- "wimg_common",
 ]

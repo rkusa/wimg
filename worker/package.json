@@ -9,6 +9,7 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "wasi": "file:../wasi"
+    "wasi": "file:../wasi",
+    "wimg": "file:../wimg"
   }
 }

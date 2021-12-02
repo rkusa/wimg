@@ -1,0 +1,14 @@
+{
+  "name": "wimg",
+  "version": "1.0.0",
+  "author": "Markus Ast",
+  "description": "",
+  "scripts": {
+    "build": "esbuild example.ts --bundle --format=esm --platform=node --outfile=example.mjs"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.1",
+    "@types/node": "^16.11.10",
+    "esbuild": "^0.14.0"
+  }
+}

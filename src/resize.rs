@@ -1,7 +1,5 @@
-#![allow(clippy::missing_safety_doc)]
-
+use crate::VecParts;
 use rgb::FromSlice;
-use wimg_common::VecParts;
 
 #[no_mangle]
 fn resize(offset: u32, size: u32, w1: u32, h1: u32, w2: u32, h2: u32) -> *mut VecParts {

@@ -6,6 +6,4 @@ mkdir -p dist
 
 ./node_modules/.bin/esbuild --format=esm --platform=neutral --external:"*.wasm" --outdir=./dist --bundle src/worker.ts
 
-cp ../target/wasm32-wasi/release/wimg_jpeg_decode.wasm dist/
-cp ../target/wasm32-wasi/release/wimg_jpeg_encode.wasm dist/
-cp ../target/wasm32-wasi/release/wimg_resize.wasm dist/
+cp ../target/wasm32-wasi/release/wimg.wasm dist/

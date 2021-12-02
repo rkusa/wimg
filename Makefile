@@ -12,4 +12,4 @@ build_docker:
 
 .PHONY: test
 test:
-	cd wasi && npm run build && node example.mjs
+	cd wimg && npm run build && node example.mjs
