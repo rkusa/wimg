@@ -17,12 +17,7 @@ export default {
     );
     console.log("size", imgWidth, imgHeight);
 
-    const image = await encode(
-      wimg,
-      await resize(wimg, ptr, imgWidth, imgHeight, 500, 333),
-      500,
-      333
-    );
+    const image = await encode(wimg, await resize(wimg, ptr, 500, 333));
 
     console.timeEnd("transform");
 

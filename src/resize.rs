@@ -1,23 +1,25 @@
-use crate::VecParts;
+use crate::Image;
 use rgb::FromSlice;
 
-#[no_mangle]
-fn resize(offset: u32, size: u32, w1: u32, h1: u32, w2: u32, h2: u32) -> *mut VecParts {
-    println!("resize {} {} {} {} {} {}", offset, size, w1, h1, w2, h2);
+pub fn resize(img: &Image, new_width: u32, new_height: u32) -> Image {
+    println!(
+        "resize {} {} {} {}",
+        img.width, img.height, new_width, new_height
+    );
 
     let mut resizer = resize::new(
-        w1 as usize,
-        h1 as usize,
-        w2 as usize,
-        h2 as usize,
+        img.width as usize,
+        img.height as usize,
+        new_width as usize,
+        new_height as usize,
         resize::Pixel::RGB8,
         resize::Type::Triangle,
     )
     .unwrap();
 
-    let src = unsafe { std::slice::from_raw_parts(offset as *const _, size as usize) };
-    let mut dst = vec![0u8; (w2 * h2 * 3) as usize];
+    let src = img.as_ref();
+    let mut dst = vec![0u8; (new_width * new_height * 3) as usize];
     resizer.resize(src.as_rgb(), dst.as_rgb_mut()).unwrap();
 
-    VecParts::new(dst)
+    Image::new(dst, new_width, new_height)
 }

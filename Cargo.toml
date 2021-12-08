@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "staticlib", "rlib"]
 
 # optimize for small code size
 [profile.release]
@@ -15,3 +15,6 @@ lto = true
 mozjpeg-sys = "1.0"
 resize = "0.7"
 rgb = "0.8"
+
+[build-dependencies]
+cbindgen = "0.20"

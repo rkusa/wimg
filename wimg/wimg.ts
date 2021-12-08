@@ -1,7 +1,7 @@
 export async function decode(
   wimg: WImg,
   image: ArrayBuffer
-): Promise<[ArrayPtr, number, number]> {
+): Promise<[Image, number, number]> {
   // allocate memory for input image
   const inPtr = wimg.alloc(image.byteLength);
   console.log("in:", inPtr, image.byteLength);
@@ -12,65 +12,51 @@ export async function decode(
   );
 
   // decode and dealloc input image
-  const outPtr = wimg.decode_jpeg(inPtr, image.byteLength);
+  const outPtr = wimg.jpeg_decode(inPtr, image.byteLength);
   wimg.dealloc(inPtr, image.byteLength);
 
   // read memory location of decoded image from memory
-  const [resultPtr, resultLen] = new Uint32Array(wimg.memory.buffer, outPtr, 3);
-  // console.log("out", resultPtr, resultLen, resultCap);
+  const [_ptr, _len, _cap, width, height] = new Uint32Array(
+    wimg.memory.buffer,
+    outPtr,
+    3
+  );
 
-  const dv = new DataView(wimg.memory.buffer, resultPtr, 8);
-  const width = dv.getUint32(0, false);
-  const height = dv.getUint32(4, false);
-
-  return [new ArrayPtr(wimg, outPtr, 8), width, height];
+  return [new Image(wimg, outPtr), width, height];
 }
 
 export async function resize(
   wimg: WImg,
-  ptr: ArrayPtr,
-  w1: number,
-  h1: number,
-  w2: number,
-  h2: number
+  img: Image,
+  newWidth: number,
+  newHeight: number
 ) {
-  const [offset, length] = ptr.offsetLength();
-
   // resize image
-  const outPtr = wimg.resize(offset, length, w1, h1, w2, h2);
+  const outPtr = wimg.resize(img.ptr, newWidth, newHeight);
   // deallocate result
-  ptr.dealloc();
+  img.dealloc();
 
-  return new ArrayPtr(wimg, outPtr);
+  return new Image(wimg, outPtr);
 }
 
-export async function encode(
-  wimg: WImg,
-  ptr: ArrayPtr,
-  width: number,
-  height: number
-): Promise<ArrayPtr> {
-  const [offset, length] = ptr.offsetLength();
-
+export async function encode(wimg: WImg, img: Image): Promise<Image> {
   // encode image
-  const outPtr = wimg.encode_jpeg(offset, length, width, height);
-  ptr.dealloc();
+  const outPtr = wimg.jpeg_encode(img.ptr);
+  img.dealloc();
 
-  return new ArrayPtr(wimg, outPtr);
+  return new Image(wimg, outPtr);
 }
 
-export class ArrayPtr {
+export class Image {
   private readonly module: WImg;
   public readonly ptr: number;
-  private readonly offset?: number;
 
-  public constructor(module: WImg, ptr: number, offset?: number) {
+  public constructor(module: WImg, ptr: number) {
     this.module = module;
     this.ptr = ptr;
-    this.offset = offset;
   }
 
-  public offsetLength(): [number, number] {
+  private offsetLength(): [number, number] {
     const [offset, length] = new Uint32Array(
       this.module.memory.buffer,
       this.ptr,
@@ -82,15 +68,11 @@ export class ArrayPtr {
   public asUint8Array(): Uint8Array {
     const [offset, length] = this.offsetLength();
 
-    return new Uint8Array(
-      this.module.memory.buffer,
-      offset + (this.offset ?? 0),
-      length
-    );
+    return new Uint8Array(this.module.memory.buffer, offset, length);
   }
 
   public dealloc() {
-    this.module.dealloc_vec(this.ptr);
+    this.module.image_destroy(this.ptr);
   }
 }
 
@@ -98,20 +80,8 @@ export interface WImg {
   readonly memory: WebAssembly.Memory;
   alloc(length: number): number;
   dealloc(offset: number, length: number): number;
-  dealloc_vec(offset: number): number;
-  decode_jpeg(offset: number, length: number): number;
-  encode_jpeg(
-    offset: number,
-    length: number,
-    width: number,
-    height: number
-  ): number;
-  resize(
-    offset: number,
-    length: number,
-    w1: number,
-    h1: number,
-    w2: number,
-    h2: number
-  ): number;
+  image_destroy(offset: number): number;
+  jpeg_decode(offset: number, length: number): number;
+  jpeg_encode(offset: number): number;
+  resize(offset: number, newWidth: number, newHeight: number): number;
 }
