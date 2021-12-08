@@ -1,5 +1,6 @@
 #![allow(clippy::missing_safety_doc)]
 
+pub mod error;
 mod ffi;
 mod jpeg;
 mod resize;

@@ -11,6 +11,10 @@ typedef struct Image {
   uint32_t height;
 } Image;
 
+char *last_error_message(void);
+
+void error_message_destroy(char *s);
+
 void image_destroy(struct Image *img);
 
 struct Image *resize(struct Image *img, uint32_t new_width, uint32_t new_height);
