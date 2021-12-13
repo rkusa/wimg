@@ -100,6 +100,7 @@ unsafe extern "C" fn error_exit(cinfo: &mut jpeg_common_struct) {
         },
     );
 
+    // jpeg_destroy
     if !cinfo.mem.is_null() {
         if let Some(self_destruct) = (*cinfo.mem).self_destruct {
             self_destruct(cinfo);

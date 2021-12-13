@@ -1,7 +1,4 @@
-export async function decode(
-  wimg: WImg,
-  image: ArrayBuffer
-): Promise<[Image, number, number]> {
+export async function decode(wimg: WImg, image: ArrayBuffer): Promise<Image> {
   // allocate memory for input image
   const inPtr = wimg.alloc(image.byteLength);
   console.log("in:", inPtr, image.byteLength);
@@ -12,17 +9,10 @@ export async function decode(
   );
 
   // decode and dealloc input image
-  const outPtr = wimg.jpeg_decode(inPtr, image.byteLength);
+  const outPtr = checkError(wimg, wimg.jpeg_decode(inPtr, image.byteLength));
   wimg.dealloc(inPtr, image.byteLength);
 
-  // read memory location of decoded image from memory
-  const [_ptr, _len, _cap, width, height] = new Uint32Array(
-    wimg.memory.buffer,
-    outPtr,
-    3
-  );
-
-  return [new Image(wimg, outPtr), width, height];
+  return new Image(wimg, outPtr);
 }
 
 export async function resize(
@@ -32,7 +22,7 @@ export async function resize(
   newHeight: number
 ) {
   // resize image
-  const outPtr = wimg.resize(img.ptr, newWidth, newHeight);
+  const outPtr = checkError(wimg, wimg.resize(img.ptr, newWidth, newHeight));
   // deallocate result
   img.dealloc();
 
@@ -41,10 +31,31 @@ export async function resize(
 
 export async function encode(wimg: WImg, img: Image): Promise<Image> {
   // encode image
-  const outPtr = wimg.jpeg_encode(img.ptr);
+  const outPtr = checkError(wimg, wimg.jpeg_encode(img.ptr));
   img.dealloc();
 
   return new Image(wimg, outPtr);
+}
+
+function checkError(wimg: WImg, img: number): number {
+  if (!img) {
+    const m = wimg.last_error_message();
+    if (m) {
+      const decoder = new TextDecoder();
+
+      let memory = new Uint8Array(wimg.memory.buffer);
+      let len = 0;
+      for (; memory[len + m] != 0; len++) {}
+
+      const data = new Uint8Array(wimg.memory.buffer, m, len);
+      const err = decoder.decode(data);
+      wimg.error_message_destroy(m);
+      throw new Error(err);
+    } else {
+      throw new Error("unknown error");
+    }
+  }
+  return img;
 }
 
 export class Image {
@@ -84,4 +95,7 @@ export interface WImg {
   jpeg_decode(offset: number, length: number): number;
   jpeg_encode(offset: number): number;
   resize(offset: number, newWidth: number, newHeight: number): number;
+  crop(offset: number, newWidth: number, newHeight: number): void;
+  last_error_message(): number;
+  error_message_destroy(offset: number): void;
 }

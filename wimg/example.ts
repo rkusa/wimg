@@ -13,14 +13,8 @@ async function run() {
 
   const image = await fsp.readFile("./example.jpg");
 
-  const [decoded, width, height] = await decode(wimg, image);
-  console.log("dimension", width, height);
-  const encoded = await encode(
-    wimg,
-    await resize(wimg, decoded, width, height, 128, 128),
-    128,
-    128
-  );
+  const decoded = await decode(wimg, image);
+  const encoded = await encode(wimg, await resize(wimg, decoded, 128, 64));
 
   // write and deallocate encoded image
   await fsp.writeFile("result.jpg", Buffer.from(encoded.asUint8Array()));

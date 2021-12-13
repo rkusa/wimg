@@ -81,9 +81,10 @@ pub unsafe extern "C" fn image_destroy(img: *mut Image) {
 
 #[no_mangle]
 pub unsafe extern "C" fn resize(img: *mut Image, new_width: u32, new_height: u32) -> *mut Image {
-    let img: &Image = if let Some(img) = img.as_ref() {
+    let img: &Image = if let Some(img) = img.as_mut() {
         img
     } else {
+        update_last_error(Error::NullPtr);
         return std::ptr::null_mut();
     };
 
@@ -112,6 +113,7 @@ pub unsafe extern "C" fn jpeg_encode(img: *mut Image) -> *mut Image {
     let img: &Image = if let Some(img) = img.as_ref() {
         img
     } else {
+        update_last_error(Error::NullPtr);
         return std::ptr::null_mut();
     };
 

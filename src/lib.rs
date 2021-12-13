@@ -1,9 +1,10 @@
 #![allow(clippy::missing_safety_doc)]
 
+mod crop;
 pub mod error;
 mod ffi;
-mod jpeg;
-mod resize;
+pub mod jpeg;
+pub mod resize;
 
 use std::mem::ManuallyDrop;
 use std::ptr::NonNull;
@@ -41,10 +42,22 @@ impl AsRef<[u8]> for Image {
     }
 }
 
+impl AsMut<[u8]> for Image {
+    fn as_mut(&mut self) -> &mut [u8] {
+        unsafe { std::slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
+    }
+}
+
 impl Drop for Image {
     fn drop(&mut self) {
         unsafe {
             Vec::from_raw_parts(self.ptr.as_ptr(), self.len as usize, self.cap as usize);
         }
+    }
+}
+
+impl Clone for Image {
+    fn clone(&self) -> Self {
+        Image::new(self.as_ref().to_vec(), self.width, self.height)
     }
 }
