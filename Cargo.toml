@@ -24,4 +24,4 @@ xxhash-rust = { version = "0.8", features = ["const_xxh64"] }
 cbindgen = "0.20"
 
 [patch.crates-io]
-ravif = { path = "../cavif-rs/ravif" }
+ravif = { git = "https://github.com/rkusa/cavif-rs.git", branch = "wasi" }

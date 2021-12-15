@@ -787,6 +787,7 @@ dependencies = [
 [[package]]
 name = "ravif"
 version = "0.8.8"
+source = "git+https://github.com/rkusa/cavif-rs.git?branch=wasi#4ed9a42165e0be06f85cf9b6a279c234e6553681"
 dependencies = [
  "avif-serialize",
  "imgref",
