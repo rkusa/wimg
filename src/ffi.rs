@@ -98,35 +98,6 @@ pub unsafe extern "C" fn resize(img: *mut Image, new_width: u32, new_height: u32
     }
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn jpeg_decode(ptr: *mut u8, size: usize) -> *mut Image {
-    match crate::jpeg::decode(ptr, size) {
-        Ok(img) => img.into_raw(),
-        Err(err) => {
-            update_last_error(err);
-            std::ptr::null_mut()
-        }
-    }
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn jpeg_encode(img: *mut Image) -> *mut Image {
-    let img: &Image = if let Some(img) = img.as_ref() {
-        img
-    } else {
-        update_last_error(Error::NullPtr);
-        return std::ptr::null_mut();
-    };
-
-    match crate::jpeg::encode(img) {
-        Ok(img) => img.into_raw(),
-        Err(err) => {
-            update_last_error(err);
-            std::ptr::null_mut()
-        }
-    }
-}
-
 #[cfg(not(target_family = "wasm"))]
 #[no_mangle]
 pub unsafe extern "C" fn hash(img: *mut Image) -> u64 {
@@ -157,5 +128,64 @@ pub unsafe extern "C" fn hash(img: *mut Image, out: *mut u8) {
 
     if let Err(err) = out.write_all(&hash) {
         update_last_error(Error::Io(err));
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn jpeg_decode(ptr: *mut u8, size: usize) -> *mut Image {
+    match crate::jpeg::decode(ptr, size) {
+        Ok(img) => img.into_raw(),
+        Err(err) => {
+            update_last_error(err);
+            std::ptr::null_mut()
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn jpeg_encode(img: *mut Image) -> *mut Image {
+    let img: &Image = if let Some(img) = img.as_ref() {
+        img
+    } else {
+        update_last_error(Error::NullPtr);
+        return std::ptr::null_mut();
+    };
+
+    match crate::jpeg::encode(img) {
+        Ok(img) => img.into_raw(),
+        Err(err) => {
+            update_last_error(err);
+            std::ptr::null_mut()
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn png_decode(ptr: *mut u8, size: usize) -> *mut Image {
+    let data = std::slice::from_raw_parts(ptr, size);
+    match crate::png::decode(data) {
+        Ok(img) => img.into_raw(),
+        Err(err) => {
+            update_last_error(err.into());
+            std::ptr::null_mut()
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn png_encode(img: *mut Image) -> *mut Image {
+    let img: &Image = if let Some(img) = img.as_ref() {
+        img
+    } else {
+        update_last_error(Error::NullPtr);
+        return std::ptr::null_mut();
+    };
+
+    match crate::png::encode(img) {
+        Ok(img) => img.into_raw(),
+        Err(err) => {
+            update_last_error(err.into());
+            std::ptr::null_mut()
+        }
     }
 }

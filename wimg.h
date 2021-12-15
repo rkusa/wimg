@@ -7,6 +7,7 @@ enum ImageFormat {
   RGB8 = 1,
   RGBA8 = 2,
   JPEG = 3,
+  PNG = 4,
 };
 typedef uint8_t ImageFormat;
 
@@ -27,10 +28,14 @@ void image_destroy(struct Image *img);
 
 struct Image *resize(struct Image *img, uint32_t new_width, uint32_t new_height);
 
+uint64_t hash(struct Image *img);
+
+void hash(struct Image *img, uint8_t *out);
+
 struct Image *jpeg_decode(uint8_t *ptr, uintptr_t size);
 
 struct Image *jpeg_encode(struct Image *img);
 
-uint64_t hash(struct Image *img);
+struct Image *png_decode(uint8_t *ptr, uintptr_t size);
 
-void hash(struct Image *img, uint8_t *out);
+struct Image *png_encode(struct Image *img);

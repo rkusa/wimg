@@ -13,8 +13,10 @@ lto = true
 
 [dependencies]
 mozjpeg-sys = { version = "1.0", features = ["unwinding"] }
+png = "0.17"
 resize = "0.7"
 rgb = "0.8"
+thiserror = "1.0"
 xxhash-rust = { version = "0.8", features = ["const_xxh64"] }
 
 [build-dependencies]

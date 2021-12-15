@@ -1,54 +1,22 @@
-use std::any::Any;
-
 use crate::ImageFormat;
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    Resize(resize::Error),
-    Jpeg(Box<dyn Any>),
+    #[error("failed to resize image")]
+    Resize(#[from] resize::Error),
+    #[error("failed to process JPEG image: {0}")]
+    Jpeg(Box<String>),
+    #[error("failed to process PNG image")]
+    Png(#[from] crate::png::PngError),
+    #[error("crop out of bounds")]
     CropOutOfBounds,
+    #[error("received null pointer")]
     NullPtr,
+    #[error("cannot {process} {format}")]
     Process {
         process: &'static str,
         format: ImageFormat,
     },
-    Io(std::io::Error),
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Resize(_) => f.write_str("failed to resize image"),
-            Self::Jpeg(err) => {
-                if let Some(s) = err.downcast_ref::<String>() {
-                    write!(f, "failed to process JPEG image: {}", s)
-                } else {
-                    f.write_str("failed to process JPEG image")
-                }
-            }
-            Self::CropOutOfBounds => f.write_str("crop out of bounds"),
-            Self::NullPtr => f.write_str("received null pointer"),
-            Self::Process { process, format } => write!(f, "cannot {} {}", process, format),
-            Self::Io(_) => f.write_str("failed to write to output buffer"),
-        }
-    }
-}
-
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Resize(err) => Some(err),
-            Self::Jpeg(_) => None,
-            Self::CropOutOfBounds => None,
-            Self::NullPtr => None,
-            Self::Process { .. } => None,
-            Self::Io(err) => Some(err),
-        }
-    }
-}
-
-impl From<resize::Error> for Error {
-    fn from(err: resize::Error) -> Self {
-        Self::Resize(err)
-    }
+    #[error("failed to write to output buffer")]
+    Io(#[from] std::io::Error),
 }

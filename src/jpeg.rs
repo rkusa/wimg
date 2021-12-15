@@ -44,7 +44,7 @@ pub fn decode(ptr: *mut u8, size: usize) -> Result<Image, Error> {
             cinfo.image_height,
         )
     })
-    .map_err(|err| Error::Jpeg(err))
+    .map_err(|err| Error::Jpeg(err.downcast::<String>().unwrap_or_default()))
 }
 
 pub fn encode(img: &Image) -> Result<Image, Error> {
@@ -83,7 +83,6 @@ pub fn encode(img: &Image) -> Result<Image, Error> {
         jpeg_set_defaults(&mut cinfo);
 
         let row_stride = cinfo.image_width as usize * cinfo.input_components as usize;
-        cinfo.dct_method = J_DCT_METHOD::JDCT_ISLOW;
         jpeg_set_quality(&mut cinfo, 80, true as boolean);
 
         jpeg_start_compress(&mut cinfo, true as boolean);
@@ -101,7 +100,7 @@ pub fn encode(img: &Image) -> Result<Image, Error> {
         let buffer = std::slice::from_raw_parts(outbuffer, outsize as usize).to_vec();
         Image::new(buffer, ImageFormat::JPEG, img.width, img.height)
     })
-    .map_err(|err| Error::Jpeg(err))
+    .map_err(|err| Error::Jpeg(err.downcast::<String>().unwrap_or_default()))
 }
 
 unsafe extern "C" fn error_exit(cinfo: &mut jpeg_common_struct) {

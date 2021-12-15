@@ -1,4 +1,8 @@
-export function decode(wimg: WImg, image: ArrayBuffer): Image {
+export function decode(
+  wimg: WImg,
+  image: ArrayBuffer,
+  format: "jpeg" | "png"
+): Image {
   // allocate memory for input image
   const inPtr = wimg.alloc(image.byteLength);
   console.log("in:", inPtr, image.byteLength);
@@ -9,7 +13,10 @@ export function decode(wimg: WImg, image: ArrayBuffer): Image {
   );
 
   // decode and dealloc input image
-  const outPtr = checkError(wimg, wimg.jpeg_decode(inPtr, image.byteLength));
+  const outPtr = checkError(
+    wimg,
+    wimg[`${format}_decode`](inPtr, image.byteLength)
+  );
   wimg.dealloc(inPtr, image.byteLength);
 
   return new Image(wimg, outPtr);
@@ -29,9 +36,9 @@ export function resize(
   return new Image(wimg, outPtr);
 }
 
-export function encode(wimg: WImg, img: Image): Image {
+export function encode(wimg: WImg, img: Image, format: "jpeg" | "png"): Image {
   // encode image
-  const outPtr = checkError(wimg, wimg.jpeg_encode(img.ptr));
+  const outPtr = checkError(wimg, wimg[`${format}_encode`](img.ptr));
   img.dealloc();
 
   return new Image(wimg, outPtr);
@@ -109,6 +116,8 @@ export interface WImg {
   image_destroy(offset: number): number;
   jpeg_decode(offset: number, length: number): number;
   jpeg_encode(offset: number): number;
+  png_decode(offset: number, length: number): number;
+  png_encode(offset: number): number;
   resize(offset: number, newWidth: number, newHeight: number): number;
   crop(offset: number, newWidth: number, newHeight: number): void;
   last_error_message(): number;

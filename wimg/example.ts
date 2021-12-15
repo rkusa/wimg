@@ -11,15 +11,23 @@ async function run() {
     fsp.readFile("../target/wasm32-wasi/release/wimg.wasm")
   );
 
-  const image = await fsp.readFile("./example.jpg");
+  {
+    const image = await fsp.readFile("./example.jpg");
+    const decoded = decode(wimg, image, "jpeg");
+    console.log("hash:", hash(wimg, decoded));
+    const encoded = encode(wimg, resize(wimg, decoded, 128, 64), "png");
+    await fsp.writeFile("result.png", Buffer.from(encoded.asUint8Array()));
+    encoded.dealloc();
+  }
 
-  const decoded = decode(wimg, image);
-  console.log("hash:", hash(wimg, decoded));
-  const encoded = encode(wimg, resize(wimg, decoded, 128, 64));
-
-  // write and deallocate encoded image
-  await fsp.writeFile("result.jpg", Buffer.from(encoded.asUint8Array()));
-  encoded.dealloc();
+  {
+    const image = await fsp.readFile("./example.png");
+    const decoded = decode(wimg, image, "png");
+    console.log("hash:", hash(wimg, decoded));
+    const encoded = encode(wimg, resize(wimg, decoded, 128, 64), "png");
+    await fsp.writeFile("result.jpg", Buffer.from(encoded.asUint8Array()));
+    encoded.dealloc();
+  }
 }
 
 run().catch(console.error);

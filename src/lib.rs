@@ -5,6 +5,7 @@ pub mod error;
 mod ffi;
 pub mod hash;
 pub mod jpeg;
+pub mod png;
 pub mod resize;
 
 use std::fmt::Display;
@@ -29,6 +30,7 @@ pub enum ImageFormat {
     RGB8 = 1,
     RGBA8 = 2,
     JPEG = 3,
+    PNG = 4,
 }
 
 #[repr(u8)]
@@ -91,6 +93,7 @@ impl Display for ImageFormat {
             ImageFormat::RGB8 => "RGB8",
             ImageFormat::RGBA8 => "RGBA8",
             ImageFormat::JPEG => "JPEG",
+            ImageFormat::PNG => "PNG",
         })
     }
 }
