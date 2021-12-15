@@ -31,4 +31,6 @@ struct Image *jpeg_decode(uint8_t *ptr, uintptr_t size);
 
 struct Image *jpeg_encode(struct Image *img);
 
+uint64_t hash(struct Image *img);
+
 void hash(struct Image *img, uint8_t *out);

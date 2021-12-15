@@ -127,6 +127,20 @@ pub unsafe extern "C" fn jpeg_encode(img: *mut Image) -> *mut Image {
     }
 }
 
+#[cfg(not(target_family = "wasm"))]
+#[no_mangle]
+pub unsafe extern "C" fn hash(img: *mut Image) -> u64 {
+    let img: &Image = if let Some(img) = img.as_mut() {
+        img
+    } else {
+        update_last_error(Error::NullPtr);
+        return 0;
+    };
+
+    crate::hash::hash(img)
+}
+
+#[cfg(target_family = "wasm")]
 #[no_mangle]
 pub unsafe extern "C" fn hash(img: *mut Image, out: *mut u8) {
     use std::io::Write;
@@ -138,7 +152,7 @@ pub unsafe extern "C" fn hash(img: *mut Image, out: *mut u8) {
         return;
     };
 
-    let hash = crate::hash::hash(img);
+    let hash = crate::hash::hash(img).to_be_bytes();
     let mut out = std::slice::from_raw_parts_mut(out, hash.len());
 
     if let Err(err) = out.write_all(&hash) {

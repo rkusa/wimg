@@ -38,9 +38,9 @@ export function encode(wimg: WImg, img: Image): Image {
 }
 
 export function hash(wimg: WImg, img: Image): string {
-  const out = wimg.alloc(32);
+  const out = wimg.alloc(8);
   wimg.hash(img.ptr, out);
-  const data = new Uint8Array(wimg.memory.buffer, out, 32);
+  const data = new Uint8Array(wimg.memory.buffer, out, 8);
   const hex = data.reduce((hex, b) => {
     hex += b.toString(16);
     return hex;
