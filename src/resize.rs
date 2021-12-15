@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use crate::crop::{crop, Fit};
 use crate::error::Error;
-use crate::Image;
+use crate::{Image, ImageFormat, PixelFormat};
 use rgb::FromSlice;
 
 pub fn resize(img: &Image, new_width: u32, new_height: u32) -> Result<Image, Error> {
@@ -10,6 +10,17 @@ pub fn resize(img: &Image, new_width: u32, new_height: u32) -> Result<Image, Err
     //     "resize {} {} {} {}",
     //     img.width, img.height, new_width, new_height
     // );
+
+    let pixel_format = match img.format {
+        ImageFormat::RGB8 => PixelFormat::RGB8,
+        ImageFormat::RGBA8 => PixelFormat::RGBA8,
+        _ => {
+            return Err(Error::Process {
+                process: "resize",
+                format: img.format,
+            })
+        }
+    };
 
     let mut img = Cow::Borrowed(img);
     let aspect_before = f64::from(img.width) / f64::from(img.height);
@@ -32,18 +43,37 @@ pub fn resize(img: &Image, new_width: u32, new_height: u32) -> Result<Image, Err
     //     img.width, img.height, new_width, new_height
     // );
 
-    let mut resizer = resize::new(
-        img.width as usize,
-        img.height as usize,
-        new_width as usize,
-        new_height as usize,
-        resize::Pixel::RGB8,
-        resize::Type::Triangle,
-    )?;
-
     let src: &[u8] = (&*img).as_ref();
-    let mut dst = vec![0u8; (new_width * new_height * 3) as usize];
-    resizer.resize(src.as_rgb(), dst.as_rgb_mut())?;
+    let dst = match pixel_format {
+        PixelFormat::RGB8 => {
+            let mut resizer = resize::new(
+                img.width as usize,
+                img.height as usize,
+                new_width as usize,
+                new_height as usize,
+                resize::Pixel::RGB8,
+                resize::Type::Triangle,
+            )?;
 
-    Ok(Image::new(dst, new_width, new_height))
+            let mut dst = vec![0u8; (new_width * new_height) as usize * pixel_format.pixel_size()];
+            resizer.resize(src.as_rgb(), dst.as_rgb_mut())?;
+            dst
+        }
+        PixelFormat::RGBA8 => {
+            let mut resizer = resize::new(
+                img.width as usize,
+                img.height as usize,
+                new_width as usize,
+                new_height as usize,
+                resize::Pixel::RGBA8,
+                resize::Type::Triangle,
+            )?;
+
+            let mut dst = vec![0u8; (new_width * new_height) as usize * pixel_format.pixel_size()];
+            resizer.resize(src.as_rgba(), dst.as_rgba_mut())?;
+            dst
+        }
+    };
+
+    Ok(Image::new(dst, img.format, new_width, new_height))
 }

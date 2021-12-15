@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::Image;
+use crate::{Image, ImageFormat};
 use mozjpeg_sys::*;
 
 pub fn decode(ptr: *mut u8, size: usize) -> Result<Image, Error> {
@@ -37,13 +37,29 @@ pub fn decode(ptr: *mut u8, size: usize) -> Result<Image, Error> {
         jpeg_finish_decompress(&mut cinfo);
         jpeg_destroy_decompress(&mut cinfo);
 
-        Image::new(buffer, cinfo.image_width, cinfo.image_height)
+        Image::new(
+            buffer,
+            ImageFormat::RGB8,
+            cinfo.image_width,
+            cinfo.image_height,
+        )
     })
     .map_err(|err| Error::Jpeg(err))
 }
 
 pub fn encode(img: &Image) -> Result<Image, Error> {
     // println!("encode {} {}", img.width, img.height);
+
+    let (in_color_space, input_components) = match img.format {
+        ImageFormat::RGB8 => (J_COLOR_SPACE::JCS_RGB, 3),
+        ImageFormat::RGBA8 => (J_COLOR_SPACE::JCS_EXT_RGBA, 4),
+        _ => {
+            return Err(Error::Process {
+                process: "encode as JPEG",
+                format: img.format,
+            })
+        }
+    };
 
     std::panic::catch_unwind(|| unsafe {
         let mut cinfo: jpeg_compress_struct = std::mem::zeroed();
@@ -62,8 +78,8 @@ pub fn encode(img: &Image) -> Result<Image, Error> {
 
         cinfo.image_width = img.width;
         cinfo.image_height = img.height;
-        cinfo.in_color_space = J_COLOR_SPACE::JCS_RGB;
-        cinfo.input_components = 3;
+        cinfo.in_color_space = in_color_space;
+        cinfo.input_components = input_components;
         jpeg_set_defaults(&mut cinfo);
 
         let row_stride = cinfo.image_width as usize * cinfo.input_components as usize;
@@ -83,7 +99,7 @@ pub fn encode(img: &Image) -> Result<Image, Error> {
         jpeg_destroy_compress(&mut cinfo);
 
         let buffer = std::slice::from_raw_parts(outbuffer, outsize as usize).to_vec();
-        Image::new(buffer, img.width, img.height)
+        Image::new(buffer, ImageFormat::JPEG, img.width, img.height)
     })
     .map_err(|err| Error::Jpeg(err))
 }

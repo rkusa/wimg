@@ -1,11 +1,17 @@
 use std::any::Any;
 
+use crate::ImageFormat;
+
 #[derive(Debug)]
 pub enum Error {
     Resize(resize::Error),
     Jpeg(Box<dyn Any>),
     CropOutOfBounds,
     NullPtr,
+    Process {
+        process: &'static str,
+        format: ImageFormat,
+    },
 }
 
 impl std::fmt::Display for Error {
@@ -21,6 +27,7 @@ impl std::fmt::Display for Error {
             }
             Self::CropOutOfBounds => f.write_str("crop out of bounds"),
             Self::NullPtr => f.write_str("received null pointer"),
+            Self::Process { process, format } => write!(f, "cannot {} {}", process, format),
         }
     }
 }
@@ -32,6 +39,7 @@ impl std::error::Error for Error {
             Self::Jpeg(_) => None,
             Self::CropOutOfBounds => None,
             Self::NullPtr => None,
+            Self::Process { .. } => None,
         }
     }
 }

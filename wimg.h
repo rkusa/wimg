@@ -3,10 +3,18 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+enum ImageFormat {
+  RGB8 = 1,
+  RGBA8 = 2,
+  JPEG = 3,
+};
+typedef uint8_t ImageFormat;
+
 typedef struct Image {
   uint8_t *ptr;
   uintptr_t len;
   uintptr_t cap;
+  ImageFormat format;
   uint32_t width;
   uint32_t height;
 } Image;
