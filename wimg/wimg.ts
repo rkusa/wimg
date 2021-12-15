@@ -30,17 +30,16 @@ export function resize(
 ) {
   // resize image
   const outPtr = checkError(wimg, wimg.resize(img.ptr, newWidth, newHeight));
-  // deallocate result
-  img.dealloc();
-
   return new Image(wimg, outPtr);
 }
 
-export function encode(wimg: WImg, img: Image, format: "jpeg" | "png"): Image {
+export function encode(
+  wimg: WImg,
+  img: Image,
+  format: "jpeg" | "png" | "avif"
+): Image {
   // encode image
   const outPtr = checkError(wimg, wimg[`${format}_encode`](img.ptr));
-  img.dealloc();
-
   return new Image(wimg, outPtr);
 }
 
@@ -118,6 +117,7 @@ export interface WImg {
   jpeg_encode(offset: number): number;
   png_decode(offset: number, length: number): number;
   png_encode(offset: number): number;
+  avif_encode(offset: number): number;
   resize(offset: number, newWidth: number, newHeight: number): number;
   crop(offset: number, newWidth: number, newHeight: number): void;
   last_error_message(): number;

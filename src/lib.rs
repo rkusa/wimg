@@ -1,5 +1,6 @@
 #![allow(clippy::missing_safety_doc)]
 
+pub mod avif;
 mod crop;
 pub mod error;
 mod ffi;
@@ -31,6 +32,7 @@ pub enum ImageFormat {
     RGBA8 = 2,
     JPEG = 3,
     PNG = 4,
+    AVIF = 5,
 }
 
 #[repr(u8)]
@@ -94,6 +96,7 @@ impl Display for ImageFormat {
             ImageFormat::RGBA8 => "RGBA8",
             ImageFormat::JPEG => "JPEG",
             ImageFormat::PNG => "PNG",
+            ImageFormat::AVIF => "AVIF",
         })
     }
 }

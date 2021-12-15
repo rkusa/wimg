@@ -15,18 +15,66 @@ async function run() {
     const image = await fsp.readFile("./example.jpg");
     const decoded = decode(wimg, image, "jpeg");
     console.log("hash:", hash(wimg, decoded));
-    const encoded = encode(wimg, resize(wimg, decoded, 128, 64), "png");
-    await fsp.writeFile("result.png", Buffer.from(encoded.asUint8Array()));
-    encoded.dealloc();
+    const resized = resize(wimg, decoded, 128, 64);
+    decoded.dealloc();
+    {
+      const encoded = encode(wimg, resized, "jpeg");
+      await fsp.writeFile(
+        "result_from_jpeg.jpg",
+        Buffer.from(encoded.asUint8Array())
+      );
+      encoded.dealloc();
+    }
+    {
+      const encoded = encode(wimg, resized, "png");
+      await fsp.writeFile(
+        "result_from_jpeg.png",
+        Buffer.from(encoded.asUint8Array())
+      );
+      encoded.dealloc();
+    }
+    {
+      const encoded = encode(wimg, resized, "avif");
+      await fsp.writeFile(
+        "result_from_jpeg.avif",
+        Buffer.from(encoded.asUint8Array())
+      );
+      encoded.dealloc();
+    }
+    resized.dealloc();
   }
 
   {
     const image = await fsp.readFile("./example.png");
     const decoded = decode(wimg, image, "png");
     console.log("hash:", hash(wimg, decoded));
-    const encoded = encode(wimg, resize(wimg, decoded, 128, 64), "png");
-    await fsp.writeFile("result.jpg", Buffer.from(encoded.asUint8Array()));
-    encoded.dealloc();
+    const resized = resize(wimg, decoded, 128, 64);
+    decoded.dealloc();
+    {
+      const encoded = encode(wimg, resized, "jpeg");
+      await fsp.writeFile(
+        "result_from_png.jpg",
+        Buffer.from(encoded.asUint8Array())
+      );
+      encoded.dealloc();
+    }
+    {
+      const encoded = encode(wimg, resized, "png");
+      await fsp.writeFile(
+        "result_from_png.png",
+        Buffer.from(encoded.asUint8Array())
+      );
+      encoded.dealloc();
+    }
+    {
+      const encoded = encode(wimg, resized, "avif");
+      await fsp.writeFile(
+        "result_from_png.avif",
+        Buffer.from(encoded.asUint8Array())
+      );
+      encoded.dealloc();
+    }
+    resized.dealloc();
   }
 }
 

@@ -8,6 +8,8 @@ pub enum Error {
     Jpeg(Box<String>),
     #[error("failed to process PNG image")]
     Png(#[from] crate::png::PngError),
+    #[error("failed to process AVIF image")]
+    Avif(#[source] Box<dyn std::error::Error + Send + Sync>),
     #[error("crop out of bounds")]
     CropOutOfBounds,
     #[error("received null pointer")]

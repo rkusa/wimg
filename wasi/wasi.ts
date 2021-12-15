@@ -119,6 +119,10 @@ export default class WASI {
     return ERRNO_SUCCESS;
   }
 
+  private sched_yield() {
+    throw new Error("sched_yield not implemented");
+  }
+
   public imports() {
     return {
       environ_get: this.environ_get.bind(this),
@@ -128,6 +132,7 @@ export default class WASI {
       fd_write: this.fd_write.bind(this),
       proc_exit: this.proc_exit.bind(this),
       random_get: this.random_get.bind(this),
+      sched_yield: this.sched_yield.bind(this),
     };
   }
 }

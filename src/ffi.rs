@@ -189,3 +189,21 @@ pub unsafe extern "C" fn png_encode(img: *mut Image) -> *mut Image {
         }
     }
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn avif_encode(img: *mut Image) -> *mut Image {
+    let img: &Image = if let Some(img) = img.as_ref() {
+        img
+    } else {
+        update_last_error(Error::NullPtr);
+        return std::ptr::null_mut();
+    };
+
+    match crate::avif::encode(img) {
+        Ok(img) => img.into_raw(),
+        Err(err) => {
+            update_last_error(err);
+            std::ptr::null_mut()
+        }
+    }
+}
