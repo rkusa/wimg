@@ -30,3 +30,5 @@ struct Image *resize(struct Image *img, uint32_t new_width, uint32_t new_height)
 struct Image *jpeg_decode(uint8_t *ptr, uintptr_t size);
 
 struct Image *jpeg_encode(struct Image *img);
+
+void hash(struct Image *img, uint8_t *out);

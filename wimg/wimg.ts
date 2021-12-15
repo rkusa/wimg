@@ -1,4 +1,4 @@
-export async function decode(wimg: WImg, image: ArrayBuffer): Promise<Image> {
+export function decode(wimg: WImg, image: ArrayBuffer): Image {
   // allocate memory for input image
   const inPtr = wimg.alloc(image.byteLength);
   console.log("in:", inPtr, image.byteLength);
@@ -15,7 +15,7 @@ export async function decode(wimg: WImg, image: ArrayBuffer): Promise<Image> {
   return new Image(wimg, outPtr);
 }
 
-export async function resize(
+export function resize(
   wimg: WImg,
   img: Image,
   newWidth: number,
@@ -29,12 +29,27 @@ export async function resize(
   return new Image(wimg, outPtr);
 }
 
-export async function encode(wimg: WImg, img: Image): Promise<Image> {
+export function encode(wimg: WImg, img: Image): Image {
   // encode image
   const outPtr = checkError(wimg, wimg.jpeg_encode(img.ptr));
   img.dealloc();
 
   return new Image(wimg, outPtr);
+}
+
+export function hash(wimg: WImg, img: Image): string {
+  const out = wimg.alloc(32);
+  wimg.hash(img.ptr, out);
+  const data = new Uint8Array(wimg.memory.buffer, out, 32);
+  const hex = data.reduce((hex, b) => {
+    hex += b.toString(16);
+    return hex;
+  }, "");
+
+  wimg.dealloc(out, 32);
+  // TODO: check error
+
+  return hex;
 }
 
 function checkError(wimg: WImg, img: number): number {
@@ -98,4 +113,5 @@ export interface WImg {
   crop(offset: number, newWidth: number, newHeight: number): void;
   last_error_message(): number;
   error_message_destroy(offset: number): void;
+  hash(image: number, out: number): void;
 }

@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::ffi::CString;
-use std::fmt::Write;
 use std::os::raw::c_char;
 
 use crate::error::Error;
@@ -22,6 +21,8 @@ fn take_last_error() -> Option<Error> {
 
 #[no_mangle]
 pub unsafe extern "C" fn last_error_message() -> *mut c_char {
+    use std::fmt::Write;
+
     if let Some(err) = take_last_error() {
         let mut message = err.to_string();
 
@@ -123,5 +124,24 @@ pub unsafe extern "C" fn jpeg_encode(img: *mut Image) -> *mut Image {
             update_last_error(err);
             std::ptr::null_mut()
         }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn hash(img: *mut Image, out: *mut u8) {
+    use std::io::Write;
+
+    let img: &Image = if let Some(img) = img.as_mut() {
+        img
+    } else {
+        update_last_error(Error::NullPtr);
+        return;
+    };
+
+    let hash = crate::hash::hash(img);
+    let mut out = std::slice::from_raw_parts_mut(out, hash.len());
+
+    if let Err(err) = out.write_all(&hash) {
+        update_last_error(Error::Io(err));
     }
 }

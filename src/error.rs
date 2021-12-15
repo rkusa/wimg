@@ -12,6 +12,7 @@ pub enum Error {
         process: &'static str,
         format: ImageFormat,
     },
+    Io(std::io::Error),
 }
 
 impl std::fmt::Display for Error {
@@ -28,6 +29,7 @@ impl std::fmt::Display for Error {
             Self::CropOutOfBounds => f.write_str("crop out of bounds"),
             Self::NullPtr => f.write_str("received null pointer"),
             Self::Process { process, format } => write!(f, "cannot {} {}", process, format),
+            Self::Io(_) => f.write_str("failed to write to output buffer"),
         }
     }
 }
@@ -40,6 +42,7 @@ impl std::error::Error for Error {
             Self::CropOutOfBounds => None,
             Self::NullPtr => None,
             Self::Process { .. } => None,
+            Self::Io(err) => Some(err),
         }
     }
 }

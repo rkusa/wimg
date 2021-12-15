@@ -3,6 +3,7 @@
 mod crop;
 pub mod error;
 mod ffi;
+pub mod hash;
 pub mod jpeg;
 pub mod resize;
 
