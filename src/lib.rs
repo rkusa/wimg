@@ -30,11 +30,11 @@ pub struct Image {
 #[derive(Debug, Clone, Copy)]
 pub enum ImageFormat {
     RGB8 = 1,
-    RGBA8 = 2,
-    JPEG = 3,
-    PNG = 4,
-    AVIF = 5,
-    WEBP = 6,
+    RGBA8,
+    JPEG,
+    PNG,
+    AVIF,
+    WEBP,
 }
 
 #[repr(u8)]

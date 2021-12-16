@@ -119,6 +119,7 @@ export interface WImg {
   png_encode(offset: number): number;
   avif_encode(offset: number): number;
   webp_encode(offset: number): number;
+  heif_decode(offset: number, length: number): number;
   resize(offset: number, newWidth: number, newHeight: number): number;
   crop(offset: number, newWidth: number, newHeight: number): void;
   last_error_message(): number;
