@@ -10,6 +10,8 @@ pub enum Error {
     Png(#[from] crate::png::PngError),
     #[error("failed to process AVIF image")]
     Avif(#[source] Box<dyn std::error::Error + Send + Sync>),
+    #[error("failed to process WEBP image: {0}")]
+    Webp(&'static str),
     #[error("crop out of bounds")]
     CropOutOfBounds,
     #[error("received null pointer")]

@@ -9,6 +9,7 @@ enum ImageFormat {
   JPEG = 3,
   PNG = 4,
   AVIF = 5,
+  WEBP = 6,
 };
 typedef uint8_t ImageFormat;
 
@@ -42,3 +43,5 @@ struct Image *png_decode(uint8_t *ptr, uintptr_t size);
 struct Image *png_encode(struct Image *img);
 
 struct Image *avif_encode(struct Image *img);
+
+struct Image *webp_encode(struct Image *img);

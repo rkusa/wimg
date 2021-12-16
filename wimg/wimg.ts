@@ -36,7 +36,7 @@ export function resize(
 export function encode(
   wimg: WImg,
   img: Image,
-  format: "jpeg" | "png" | "avif"
+  format: "jpeg" | "png" | "avif" | "webp"
 ): Image {
   // encode image
   const outPtr = checkError(wimg, wimg[`${format}_encode`](img.ptr));
@@ -118,6 +118,7 @@ export interface WImg {
   png_decode(offset: number, length: number): number;
   png_encode(offset: number): number;
   avif_encode(offset: number): number;
+  webp_encode(offset: number): number;
   resize(offset: number, newWidth: number, newHeight: number): number;
   crop(offset: number, newWidth: number, newHeight: number): void;
   last_error_message(): number;

@@ -41,6 +41,14 @@ async function run() {
       );
       encoded.dealloc();
     }
+    {
+      const encoded = encode(wimg, resized, "webp");
+      await fsp.writeFile(
+        "result_from_jpeg.webp",
+        Buffer.from(encoded.asUint8Array())
+      );
+      encoded.dealloc();
+    }
     resized.dealloc();
   }
 
@@ -70,6 +78,14 @@ async function run() {
       const encoded = encode(wimg, resized, "avif");
       await fsp.writeFile(
         "result_from_png.avif",
+        Buffer.from(encoded.asUint8Array())
+      );
+      encoded.dealloc();
+    }
+    {
+      const encoded = encode(wimg, resized, "webp");
+      await fsp.writeFile(
+        "result_from_png.webp",
         Buffer.from(encoded.asUint8Array())
       );
       encoded.dealloc();

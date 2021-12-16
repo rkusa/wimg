@@ -8,6 +8,7 @@ pub mod hash;
 pub mod jpeg;
 pub mod png;
 pub mod resize;
+pub mod webp;
 
 use std::fmt::Display;
 use std::mem::ManuallyDrop;
@@ -33,6 +34,7 @@ pub enum ImageFormat {
     JPEG = 3,
     PNG = 4,
     AVIF = 5,
+    WEBP = 6,
 }
 
 #[repr(u8)]
@@ -97,6 +99,7 @@ impl Display for ImageFormat {
             ImageFormat::JPEG => "JPEG",
             ImageFormat::PNG => "PNG",
             ImageFormat::AVIF => "AVIF",
+            ImageFormat::WEBP => "WEBP",
         })
     }
 }

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["cdylib"] # needs to be staticlib when building for e.g. Go
 
 # optimize for small code size
 [profile.release]
@@ -18,6 +18,7 @@ ravif = "0.8"
 resize = "0.7"
 rgb = "0.8"
 thiserror = "1.0"
+libwebp-sys2 = { version = "0.1", features = ["1_2", "static"] }
 xxhash-rust = { version = "0.8", features = ["const_xxh64"] }
 
 [build-dependencies]
