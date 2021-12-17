@@ -2,7 +2,11 @@ use crate::error::Error;
 use crate::{Image, ImageFormat};
 use mozjpeg_sys::*;
 
-pub fn decode(ptr: *mut u8, size: usize) -> Result<Image, Error> {
+pub fn seed() -> u32 {
+    0
+}
+
+pub fn decode(data: &[u8]) -> Result<Image, Error> {
     // println!("decode");
 
     std::panic::catch_unwind(|| unsafe {
@@ -16,7 +20,7 @@ pub fn decode(ptr: *mut u8, size: usize) -> Result<Image, Error> {
 
         jpeg_create_decompress(&mut cinfo);
 
-        jpeg_mem_src(&mut cinfo, ptr, size as c_ulong);
+        jpeg_mem_src(&mut cinfo, data.as_ptr(), data.len() as c_ulong);
         jpeg_read_header(&mut cinfo, true as boolean);
 
         // println!("width={}, height={}", cinfo.image_width, cinfo.image_height);

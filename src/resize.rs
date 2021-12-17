@@ -5,6 +5,10 @@ use crate::error::Error;
 use crate::{Image, ImageFormat, PixelFormat};
 use rgb::FromSlice;
 
+pub fn seed() -> u32 {
+    0
+}
+
 pub fn resize(img: &Image, new_width: u32, new_height: u32) -> Result<Image, Error> {
     // println!(
     //     "resize {} {} {} {}",
@@ -26,10 +30,10 @@ pub fn resize(img: &Image, new_width: u32, new_height: u32) -> Result<Image, Err
     let aspect_before = f64::from(img.width) / f64::from(img.height);
     let aspect_after = f64::from(new_width) / f64::from(new_height);
     if (aspect_after - aspect_before).abs() >= f64::EPSILON {
-        println!(
-            "aspect change {} {} -> cropping",
-            aspect_before, aspect_after
-        );
+        // println!(
+        //     "aspect change {} {} -> cropping",
+        //     aspect_before, aspect_after
+        // );
         let (crop_width, crop_height) = if aspect_after > aspect_before {
             (img.width, (f64::from(img.width) / aspect_after) as u32)
         } else {

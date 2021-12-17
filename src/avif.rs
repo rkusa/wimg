@@ -3,6 +3,10 @@ use rgb::FromSlice;
 use crate::error::Error;
 use crate::{Image, ImageFormat};
 
+pub fn seed() -> u32 {
+    0
+}
+
 pub fn encode(img: &Image) -> Result<Image, Error> {
     let config = ravif::Config {
         quality: 80.0,

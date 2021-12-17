@@ -9,6 +9,10 @@ use mozjpeg_sys::c_int;
 use crate::error::Error;
 use crate::{Image, ImageFormat};
 
+pub fn seed() -> u32 {
+    0
+}
+
 pub fn encode(img: &Image) -> Result<Image, Error> {
     unsafe {
         let mut config: WebPConfig = std::mem::zeroed();

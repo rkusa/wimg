@@ -100,30 +100,19 @@ pub unsafe extern "C" fn resize(img: *mut Image, new_width: u32, new_height: u32
 
 #[cfg(not(target_family = "wasm"))]
 #[no_mangle]
-pub unsafe extern "C" fn hash(img: *mut Image) -> u64 {
-    let img: &Image = if let Some(img) = img.as_mut() {
-        img
-    } else {
-        update_last_error(Error::NullPtr);
-        return 0;
-    };
-
-    crate::hash::hash(img)
+pub unsafe extern "C" fn hash(ptr: *mut u8, size: usize, seed: u32) -> u64 {
+    let data = std::slice::from_raw_parts(ptr, size);
+    crate::hash::hash(data, seed)
 }
 
 #[cfg(target_family = "wasm")]
 #[no_mangle]
-pub unsafe extern "C" fn hash(img: *mut Image, out: *mut u8) {
+pub unsafe extern "C" fn hash(ptr: *mut u8, size: usize, seed: u32, out: *mut u8) {
     use std::io::Write;
 
-    let img: &Image = if let Some(img) = img.as_mut() {
-        img
-    } else {
-        update_last_error(Error::NullPtr);
-        return;
-    };
+    let data = std::slice::from_raw_parts(ptr, size);
 
-    let hash = crate::hash::hash(img).to_be_bytes();
+    let hash = crate::hash::hash(data, seed).to_be_bytes();
     let mut out = std::slice::from_raw_parts_mut(out, hash.len());
 
     if let Err(err) = out.write_all(&hash) {
@@ -132,8 +121,14 @@ pub unsafe extern "C" fn hash(img: *mut Image, out: *mut u8) {
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn jpeg_seed() -> u32 {
+    crate::jpeg::seed()
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn jpeg_decode(ptr: *mut u8, size: usize) -> *mut Image {
-    match crate::jpeg::decode(ptr, size) {
+    let data = std::slice::from_raw_parts(ptr, size);
+    match crate::jpeg::decode(data) {
         Ok(img) => img.into_raw(),
         Err(err) => {
             update_last_error(err);
@@ -158,6 +153,11 @@ pub unsafe extern "C" fn jpeg_encode(img: *mut Image) -> *mut Image {
             std::ptr::null_mut()
         }
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn png_seed() -> u32 {
+    crate::png::seed()
 }
 
 #[no_mangle]
@@ -191,6 +191,11 @@ pub unsafe extern "C" fn png_encode(img: *mut Image) -> *mut Image {
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn avif_seed() -> u32 {
+    crate::avif::seed()
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn avif_encode(img: *mut Image) -> *mut Image {
     let img: &Image = if let Some(img) = img.as_ref() {
         img
@@ -206,6 +211,11 @@ pub unsafe extern "C" fn avif_encode(img: *mut Image) -> *mut Image {
             std::ptr::null_mut()
         }
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn webp_seed() -> u32 {
+    crate::webp::seed()
 }
 
 #[no_mangle]

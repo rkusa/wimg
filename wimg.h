@@ -30,18 +30,26 @@ void image_destroy(struct Image *img);
 
 struct Image *resize(struct Image *img, uint32_t new_width, uint32_t new_height);
 
-uint64_t hash(struct Image *img);
+uint64_t hash(uint8_t *ptr, uintptr_t size, uint32_t seed);
 
-void hash(struct Image *img, uint8_t *out);
+void hash(uint8_t *ptr, uintptr_t size, uint32_t seed, uint8_t *out);
+
+uint32_t jpeg_seed(void);
 
 struct Image *jpeg_decode(uint8_t *ptr, uintptr_t size);
 
 struct Image *jpeg_encode(struct Image *img);
 
+uint32_t png_seed(void);
+
 struct Image *png_decode(uint8_t *ptr, uintptr_t size);
 
 struct Image *png_encode(struct Image *img);
 
+uint32_t avif_seed(void);
+
 struct Image *avif_encode(struct Image *img);
+
+uint32_t webp_seed(void);
 
 struct Image *webp_encode(struct Image *img);
