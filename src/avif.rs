@@ -9,9 +9,9 @@ pub fn seed() -> u32 {
 
 pub fn encode(img: &Image) -> Result<Image, Error> {
     let config = ravif::Config {
-        quality: 80.0,
-        alpha_quality: 80.0,
-        speed: 1,
+        quality: 60.0,
+        alpha_quality: 60.0,
+        speed: 5,
         premultiplied_alpha: false,
         color_space: ravif::ColorSpace::YCbCr,
         #[cfg(target_family = "wasm")]
