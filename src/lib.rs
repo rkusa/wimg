@@ -60,6 +60,14 @@ impl Image {
     fn into_raw(self) -> *mut Self {
         Box::into_raw(Box::new(self))
     }
+
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    pub fn height(&self) -> u32 {
+        self.height
+    }
 }
 
 impl PixelFormat {
