@@ -13,10 +13,16 @@ pub fn seed() -> u32 {
     0
 }
 
-pub fn encode(img: &Image) -> Result<Image, Error> {
+#[derive(Debug)]
+pub struct EncodeOptions {
+    /// 0-100 scale
+    pub quality: u16,
+}
+
+pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
     unsafe {
         let mut config: WebPConfig = std::mem::zeroed();
-        if WebPConfigPreset(&mut config, WEBP_PRESET_PHOTO, 80.0) == 0 {
+        if WebPConfigPreset(&mut config, WEBP_PRESET_PHOTO, opts.quality as f32) == 0 {
             return Err(Error::Webp("failed to initialize config preset"));
         }
         if WebPValidateConfig(&config) == 0 {
@@ -62,6 +68,12 @@ pub fn encode(img: &Image) -> Result<Image, Error> {
 
         let data = Vec::from_raw_parts(writer.mem, writer.size, writer.max_size);
         Ok(Image::new(data, ImageFormat::WEBP, img.width, img.height))
+    }
+}
+
+impl Default for EncodeOptions {
+    fn default() -> Self {
+        Self { quality: 80 }
     }
 }
 

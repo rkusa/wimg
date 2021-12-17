@@ -51,7 +51,13 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
     .map_err(|err| Error::Jpeg(err.downcast::<String>().unwrap_or_default()))
 }
 
-pub fn encode(img: &Image) -> Result<Image, Error> {
+#[derive(Debug)]
+pub struct EncodeOptions {
+    /// 0-100 scale
+    pub quality: u16,
+}
+
+pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
     // println!("encode {} {}", img.width, img.height);
 
     let (in_color_space, input_components) = match img.format {
@@ -85,12 +91,11 @@ pub fn encode(img: &Image) -> Result<Image, Error> {
         cinfo.in_color_space = in_color_space;
         cinfo.input_components = input_components;
         jpeg_set_defaults(&mut cinfo);
-
-        let row_stride = cinfo.image_width as usize * cinfo.input_components as usize;
-        jpeg_set_quality(&mut cinfo, 80, true as boolean);
+        jpeg_set_quality(&mut cinfo, opts.quality as i32, true as boolean);
 
         jpeg_start_compress(&mut cinfo, true as boolean);
 
+        let row_stride = cinfo.image_width as usize * cinfo.input_components as usize;
         let buffer = img.as_ref();
         while cinfo.next_scanline < cinfo.image_height {
             let offset = cinfo.next_scanline as usize * row_stride;
@@ -105,6 +110,12 @@ pub fn encode(img: &Image) -> Result<Image, Error> {
         Image::new(buffer, ImageFormat::JPEG, img.width, img.height)
     })
     .map_err(|err| Error::Jpeg(err.downcast::<String>().unwrap_or_default()))
+}
+
+impl Default for EncodeOptions {
+    fn default() -> Self {
+        Self { quality: 80 }
+    }
 }
 
 unsafe extern "C" fn error_exit(cinfo: &mut jpeg_common_struct) {

@@ -151,7 +151,7 @@ pub unsafe extern "C" fn jpeg_encode(img: *mut Image) -> *mut Image {
         return std::ptr::null_mut();
     };
 
-    match crate::jpeg::encode(img) {
+    match crate::jpeg::encode(img, &Default::default()) {
         Ok(img) => img.into_raw(),
         Err(err) => {
             update_last_error(err);
@@ -209,7 +209,7 @@ pub unsafe extern "C" fn avif_encode(img: *mut Image) -> *mut Image {
         return std::ptr::null_mut();
     };
 
-    match crate::avif::encode(img) {
+    match crate::avif::encode(img, &Default::default()) {
         Ok(img) => img.into_raw(),
         Err(err) => {
             update_last_error(err);
@@ -232,7 +232,7 @@ pub unsafe extern "C" fn webp_encode(img: *mut Image) -> *mut Image {
         return std::ptr::null_mut();
     };
 
-    match crate::webp::encode(img) {
+    match crate::webp::encode(img, &Default::default()) {
         Ok(img) => img.into_raw(),
         Err(err) => {
             update_last_error(err);

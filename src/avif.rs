@@ -7,11 +7,19 @@ pub fn seed() -> u32 {
     0
 }
 
-pub fn encode(img: &Image) -> Result<Image, Error> {
+#[derive(Debug)]
+pub struct EncodeOptions {
+    /// 0-100 scale
+    pub quality: u16,
+    /// rav1e preset 1 (slow) 10 (fast but crappy)
+    pub speed: u8,
+}
+
+pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
     let config = ravif::Config {
-        quality: 60.0,
-        alpha_quality: 60.0,
-        speed: 5,
+        quality: opts.quality as f32,
+        alpha_quality: opts.quality as f32,
+        speed: opts.speed,
         premultiplied_alpha: false,
         color_space: ravif::ColorSpace::YCbCr,
         #[cfg(target_family = "wasm")]
@@ -40,5 +48,14 @@ pub fn encode(img: &Image) -> Result<Image, Error> {
             process: "encode as AVIF",
             format: img.format,
         }),
+    }
+}
+
+impl Default for EncodeOptions {
+    fn default() -> Self {
+        Self {
+            quality: 60,
+            speed: 5,
+        }
     }
 }
