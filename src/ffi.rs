@@ -81,7 +81,12 @@ pub unsafe extern "C" fn image_destroy(img: *mut Image) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn resize(img: *mut Image, new_width: u32, new_height: u32) -> *mut Image {
+pub unsafe extern "C" fn resize(
+    img: *mut Image,
+    new_width: u32,
+    new_height: u32,
+    maintain_aspect: bool,
+) -> *mut Image {
     let img: &Image = if let Some(img) = img.as_mut() {
         img
     } else {
@@ -89,7 +94,7 @@ pub unsafe extern "C" fn resize(img: *mut Image, new_width: u32, new_height: u32
         return std::ptr::null_mut();
     };
 
-    match crate::resize::resize(img, new_width, new_height) {
+    match crate::resize::resize(img, new_width, new_height, maintain_aspect) {
         Ok(img) => img.into_raw(),
         Err(err) => {
             update_last_error(err);

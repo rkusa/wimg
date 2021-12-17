@@ -9,7 +9,12 @@ pub fn seed() -> u32 {
     0
 }
 
-pub fn resize(img: &Image, new_width: u32, new_height: u32) -> Result<Image, Error> {
+pub fn resize(
+    img: &Image,
+    mut new_width: u32,
+    mut new_height: u32,
+    maintain_aspect: bool,
+) -> Result<Image, Error> {
     // println!(
     //     "resize {} {} {} {}",
     //     img.width, img.height, new_width, new_height
@@ -26,20 +31,41 @@ pub fn resize(img: &Image, new_width: u32, new_height: u32) -> Result<Image, Err
         }
     };
 
+    if new_width > img.width {
+        new_width = img.width;
+    }
+    if new_height > img.height {
+        new_height = img.height;
+    }
+
     let mut img = Cow::Borrowed(img);
+
+    // TODO: checked div?
+
     let aspect_before = f64::from(img.width) / f64::from(img.height);
     let aspect_after = f64::from(new_width) / f64::from(new_height);
+
     if (aspect_after - aspect_before).abs() >= f64::EPSILON {
-        // println!(
-        //     "aspect change {} {} -> cropping",
-        //     aspect_before, aspect_after
-        // );
-        let (crop_width, crop_height) = if aspect_after > aspect_before {
-            (img.width, (f64::from(img.width) / aspect_after) as u32)
+        if maintain_aspect {
+            if aspect_after > aspect_before {
+                let scale = f64::from(new_height) / f64::from(img.height);
+                new_width = (f64::from(img.width) * scale) as u32;
+            } else {
+                let scale = f64::from(new_width) / f64::from(img.width);
+                new_height = (f64::from(img.height) * scale) as u32;
+            }
         } else {
-            ((f64::from(img.height) * aspect_after) as u32, img.height)
-        };
-        img = Cow::Owned(crop(&img, crop_width, crop_height, Fit::Contain)?);
+            // println!(
+            //     "aspect change {} {} -> cropping",
+            //     aspect_before, aspect_after
+            // );
+            let (crop_width, crop_height) = if aspect_after > aspect_before {
+                (img.width, (f64::from(img.width) / aspect_after) as u32)
+            } else {
+                ((f64::from(img.height) * aspect_after) as u32, img.height)
+            };
+            img = Cow::Owned(crop(&img, crop_width, crop_height, Fit::Contain)?);
+        }
     }
 
     // println!(
