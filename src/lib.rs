@@ -3,6 +3,7 @@
 pub mod avif;
 mod crop;
 pub mod error;
+#[cfg(feature = "ffi")]
 mod ffi;
 pub mod hash;
 pub mod jpeg;
@@ -11,16 +12,25 @@ pub mod resize;
 pub mod webp;
 
 use std::fmt::Display;
-use std::mem::ManuallyDrop;
+#[cfg(feature = "ffi")]
 use std::ptr::NonNull;
 
-#[repr(C)]
+#[cfg(feature = "ffi")]
 #[repr(C)]
 #[derive(Debug)]
 pub struct Image {
     ptr: NonNull<u8>,
     len: usize,
     cap: usize,
+    format: ImageFormat,
+    width: u32,
+    height: u32,
+}
+
+#[cfg(not(feature = "ffi"))]
+#[derive(Debug)]
+pub struct Image {
+    data: Vec<u8>,
     format: ImageFormat,
     width: u32,
     height: u32,
@@ -45,8 +55,9 @@ enum PixelFormat {
 }
 
 impl Image {
+    #[cfg(feature = "ffi")]
     fn new(v: Vec<u8>, format: ImageFormat, width: u32, height: u32) -> Self {
-        let mut v = ManuallyDrop::new(v);
+        let mut v = std::mem::ManuallyDrop::new(v);
         Self {
             ptr: unsafe { NonNull::new_unchecked(v.as_mut_ptr()) },
             len: v.len(),
@@ -57,8 +68,19 @@ impl Image {
         }
     }
 
+    #[cfg(feature = "ffi")]
     fn into_raw(self) -> *mut Self {
         Box::into_raw(Box::new(self))
+    }
+
+    #[cfg(not(feature = "ffi"))]
+    fn new(data: Vec<u8>, format: ImageFormat, width: u32, height: u32) -> Self {
+        Self {
+            data,
+            format,
+            width,
+            height,
+        }
     }
 
     pub fn width(&self) -> u32 {
@@ -81,10 +103,16 @@ impl PixelFormat {
 
 impl AsRef<[u8]> for Image {
     fn as_ref(&self) -> &[u8] {
-        unsafe { std::slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
+        #[cfg(feature = "ffi")]
+        unsafe {
+            std::slice::from_raw_parts(self.ptr.as_ptr(), self.len)
+        }
+        #[cfg(not(feature = "ffi"))]
+        &self.data
     }
 }
 
+#[cfg(feature = "ffi")]
 impl Drop for Image {
     fn drop(&mut self) {
         unsafe {
