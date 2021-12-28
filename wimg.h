@@ -41,6 +41,8 @@ struct Image *jpeg_decode(uint8_t *ptr, uintptr_t size);
 
 struct Image *jpeg_encode(struct Image *img);
 
+void jpeg_set_encode_quality(uint16_t quality);
+
 uint32_t png_seed(void);
 
 struct Image *png_decode(uint8_t *ptr, uintptr_t size);
@@ -51,6 +53,12 @@ uint32_t avif_seed(void);
 
 struct Image *avif_encode(struct Image *img);
 
+void avif_set_encode_quality(uint16_t quality);
+
+void avif_set_encode_speed(uint8_t speed);
+
 uint32_t webp_seed(void);
 
 struct Image *webp_encode(struct Image *img);
+
+void webp_set_encode_quality(uint16_t quality);

@@ -13,7 +13,7 @@ pub fn seed() -> u32 {
     0
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EncodeOptions {
     /// 0-100 scale
     pub quality: u16,

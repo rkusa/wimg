@@ -51,7 +51,7 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
     .map_err(|err| Error::Jpeg(err.downcast::<String>().unwrap_or_default()))
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EncodeOptions {
     /// 0-100 scale
     pub quality: u16,

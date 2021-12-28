@@ -5,8 +5,12 @@ use std::os::raw::c_char;
 use crate::error::Error;
 use crate::Image;
 
+// TODO: move into context?
 thread_local! {
     static LAST_ERROR: RefCell<Option<Error>> = RefCell::new(None);
+    static JPEG_ENCODE_OPTIONS: RefCell<crate::jpeg::EncodeOptions> = RefCell::new(Default::default());
+    static AVIF_ENCODE_OPTIONS: RefCell<crate::avif::EncodeOptions> = RefCell::new(Default::default());
+    static WEBP_ENCODE_OPTIONS: RefCell<crate::webp::EncodeOptions> = RefCell::new(Default::default());
 }
 
 fn update_last_error(err: Error) {
@@ -151,13 +155,21 @@ pub unsafe extern "C" fn jpeg_encode(img: *mut Image) -> *mut Image {
         return std::ptr::null_mut();
     };
 
-    match crate::jpeg::encode(img, &Default::default()) {
+    match crate::jpeg::encode(img, &JPEG_ENCODE_OPTIONS.with(|o| o.borrow().clone())) {
         Ok(img) => img.into_raw(),
         Err(err) => {
             update_last_error(err);
             std::ptr::null_mut()
         }
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn jpeg_set_encode_quality(quality: u16) {
+    JPEG_ENCODE_OPTIONS.with(|opts| {
+        let mut opts = opts.borrow_mut();
+        opts.quality = quality;
+    });
 }
 
 #[no_mangle]
@@ -209,13 +221,29 @@ pub unsafe extern "C" fn avif_encode(img: *mut Image) -> *mut Image {
         return std::ptr::null_mut();
     };
 
-    match crate::avif::encode(img, &Default::default()) {
+    match crate::avif::encode(img, &AVIF_ENCODE_OPTIONS.with(|o| o.borrow().clone())) {
         Ok(img) => img.into_raw(),
         Err(err) => {
             update_last_error(err);
             std::ptr::null_mut()
         }
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn avif_set_encode_quality(quality: u16) {
+    AVIF_ENCODE_OPTIONS.with(|opts| {
+        let mut opts = opts.borrow_mut();
+        opts.quality = quality;
+    });
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn avif_set_encode_speed(speed: u8) {
+    AVIF_ENCODE_OPTIONS.with(|opts| {
+        let mut opts = opts.borrow_mut();
+        opts.speed = speed;
+    });
 }
 
 #[no_mangle]
@@ -232,11 +260,19 @@ pub unsafe extern "C" fn webp_encode(img: *mut Image) -> *mut Image {
         return std::ptr::null_mut();
     };
 
-    match crate::webp::encode(img, &Default::default()) {
+    match crate::webp::encode(img, &WEBP_ENCODE_OPTIONS.with(|o| o.borrow().clone())) {
         Ok(img) => img.into_raw(),
         Err(err) => {
             update_last_error(err);
             std::ptr::null_mut()
         }
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn webp_set_encode_quality(quality: u16) {
+    WEBP_ENCODE_OPTIONS.with(|opts| {
+        let mut opts = opts.borrow_mut();
+        opts.quality = quality;
+    });
 }
