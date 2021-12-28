@@ -112,7 +112,7 @@ pub unsafe extern "C" fn hash(ptr: *mut u8, size: usize, seed: u32) -> u64 {
 
 #[cfg(target_family = "wasm")]
 #[no_mangle]
-pub unsafe extern "C" fn hash(ptr: *mut u8, size: usize, seed: u32, out: *mut u8) {
+pub unsafe fn hash(ptr: *mut u8, size: usize, seed: u32, out: *mut u8) {
     use std::io::Write;
 
     let data = std::slice::from_raw_parts(ptr, size);
