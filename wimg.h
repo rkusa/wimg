@@ -13,6 +13,8 @@ enum ImageFormat {
 };
 typedef uint8_t ImageFormat;
 
+typedef struct Context Context;
+
 typedef struct Image {
   uint8_t *ptr;
   uintptr_t len;
@@ -22,13 +24,18 @@ typedef struct Image {
   uint32_t height;
 } Image;
 
-char *last_error_message(void);
+struct Context *context_new(void);
+
+void context_destroy(struct Context *img);
+
+char *last_error_message(struct Context *ctx);
 
 void error_message_destroy(char *s);
 
 void image_destroy(struct Image *img);
 
-struct Image *resize(struct Image *img,
+struct Image *resize(struct Context *ctx,
+                     struct Image *img,
                      uint32_t new_width,
                      uint32_t new_height,
                      bool maintain_aspect);
@@ -37,28 +44,28 @@ uint64_t hash(uint8_t *ptr, uintptr_t size, uint32_t seed);
 
 uint32_t jpeg_seed(void);
 
-struct Image *jpeg_decode(uint8_t *ptr, uintptr_t size);
+struct Image *jpeg_decode(struct Context *ctx, uint8_t *ptr, uintptr_t size);
 
-struct Image *jpeg_encode(struct Image *img);
+struct Image *jpeg_encode(struct Context *ctx, struct Image *img);
 
-void jpeg_set_encode_quality(uint16_t quality);
+void jpeg_set_encode_quality(struct Context *ctx, uint16_t quality);
 
 uint32_t png_seed(void);
 
-struct Image *png_decode(uint8_t *ptr, uintptr_t size);
+struct Image *png_decode(struct Context *ctx, uint8_t *ptr, uintptr_t size);
 
-struct Image *png_encode(struct Image *img);
+struct Image *png_encode(struct Context *ctx, struct Image *img);
 
 uint32_t avif_seed(void);
 
-struct Image *avif_encode(struct Image *img);
+struct Image *avif_encode(struct Context *ctx, struct Image *img);
 
-void avif_set_encode_quality(uint16_t quality);
+void avif_set_encode_quality(struct Context *ctx, uint16_t quality);
 
-void avif_set_encode_speed(uint8_t speed);
+void avif_set_encode_speed(struct Context *ctx, uint8_t speed);
 
 uint32_t webp_seed(void);
 
-struct Image *webp_encode(struct Image *img);
+struct Image *webp_encode(struct Context *ctx, struct Image *img);
 
-void webp_set_encode_quality(uint16_t quality);
+void webp_set_encode_quality(struct Context *ctx, uint16_t quality);

@@ -1,5 +1,6 @@
 export function decode(
   wimg: WImg,
+  ctx: number,
   image: ArrayBuffer,
   format: "jpeg" | "png"
 ): Image {
@@ -15,7 +16,8 @@ export function decode(
   // decode and dealloc input image
   const outPtr = checkError(
     wimg,
-    wimg[`${format}_decode`](inPtr, image.byteLength)
+    ctx,
+    wimg[`${format}_decode`](ctx, inPtr, image.byteLength)
   );
   wimg.dealloc(inPtr, image.byteLength);
 
@@ -24,22 +26,28 @@ export function decode(
 
 export function resize(
   wimg: WImg,
+  ctx: number,
   img: Image,
   newWidth: number,
   newHeight: number
 ) {
   // resize image
-  const outPtr = checkError(wimg, wimg.resize(img.ptr, newWidth, newHeight));
+  const outPtr = checkError(
+    wimg,
+    ctx,
+    wimg.resize(ctx, img.ptr, newWidth, newHeight)
+  );
   return new Image(wimg, outPtr);
 }
 
 export function encode(
   wimg: WImg,
+  ctx: number,
   img: Image,
   format: "jpeg" | "png" | "avif" | "webp"
 ): Image {
   // encode image
-  const outPtr = checkError(wimg, wimg[`${format}_encode`](img.ptr));
+  const outPtr = checkError(wimg, ctx, wimg[`${format}_encode`](ctx, img.ptr));
   return new Image(wimg, outPtr);
 }
 
@@ -53,14 +61,13 @@ export function hash(wimg: WImg, img: Image): string {
   }, "");
 
   wimg.dealloc(out, 32);
-  // TODO: check error
 
   return hex;
 }
 
-function checkError(wimg: WImg, img: number): number {
+function checkError(wimg: WImg, ctx: number, img: number): number {
   if (!img) {
-    const m = wimg.last_error_message();
+    const m = wimg.last_error_message(ctx);
     if (m) {
       const decoder = new TextDecoder();
 
@@ -110,19 +117,25 @@ export class Image {
 
 export interface WImg {
   readonly memory: WebAssembly.Memory;
+  context_new(): number;
+  context_destroy(ctx: number): void;
   alloc(length: number): number;
   dealloc(offset: number, length: number): number;
   image_destroy(offset: number): number;
-  jpeg_decode(offset: number, length: number): number;
-  jpeg_encode(offset: number): number;
-  png_decode(offset: number, length: number): number;
-  png_encode(offset: number): number;
-  avif_encode(offset: number): number;
-  webp_encode(offset: number): number;
-  heif_decode(offset: number, length: number): number;
-  resize(offset: number, newWidth: number, newHeight: number): number;
-  crop(offset: number, newWidth: number, newHeight: number): void;
-  last_error_message(): number;
+  jpeg_decode(ctx: number, offset: number, length: number): number;
+  jpeg_encode(ctx: number, offset: number): number;
+  png_decode(ctx: number, offset: number, length: number): number;
+  png_encode(ctx: number, offset: number): number;
+  avif_encode(ctx: number, offset: number): number;
+  webp_encode(ctx: number, offset: number): number;
+  heif_decode(ctx: number, offset: number, length: number): number;
+  resize(
+    ctx: number,
+    offset: number,
+    newWidth: number,
+    newHeight: number
+  ): number;
+  last_error_message(ctx: number): number;
   error_message_destroy(offset: number): void;
   hash(image: number, out: number): void;
 }

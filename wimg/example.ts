@@ -11,17 +11,19 @@ async function run() {
     fsp.readFile("../target/wasm32-wasi/release/wimg.wasm")
   );
 
+  const ctx = wimg.context_new();
+
   const decodeFormats = ["jpeg", "png"] as const;
   const encodeFormats = ["jpeg", "png", "avif", "webp"] as const;
   for (const decodeFormat of decodeFormats) {
     const image = await fsp.readFile(`./example.${ext(decodeFormat)}`);
-    const decoded = decode(wimg, image, decodeFormat);
+    const decoded = decode(wimg, ctx, image, decodeFormat);
     console.log("hash:", hash(wimg, decoded));
-    const resized = resize(wimg, decoded, 128, 64);
+    const resized = resize(wimg, ctx, decoded, 128, 64);
     decoded.dealloc();
 
     for (const encodeFormat of encodeFormats) {
-      const encoded = encode(wimg, resized, encodeFormat);
+      const encoded = encode(wimg, ctx, resized, encodeFormat);
       await fsp.writeFile(
         `result_from_${decodeFormat}.${ext(encodeFormat)}`,
         Buffer.from(encoded.asUint8Array())
@@ -31,6 +33,8 @@ async function run() {
 
     resized.dealloc();
   }
+
+  wimg.context_destroy(ctx);
 }
 
 function ext(format: "jpeg" | "png" | "avif" | "webp") {

@@ -21,6 +21,4 @@ pub enum Error {
         process: &'static str,
         format: ImageFormat,
     },
-    #[error("failed to write to output buffer")]
-    Io(#[from] std::io::Error),
 }
