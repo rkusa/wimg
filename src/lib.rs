@@ -112,6 +112,17 @@ impl AsRef<[u8]> for Image {
     }
 }
 
+impl AsMut<[u8]> for Image {
+    fn as_mut(&mut self) -> &mut [u8] {
+        #[cfg(feature = "ffi")]
+        unsafe {
+            std::slice::from_raw_parts_mut(self.ptr.as_mut(), self.len)
+        }
+        #[cfg(not(feature = "ffi"))]
+        &mut self.data
+    }
+}
+
 #[cfg(feature = "ffi")]
 impl Drop for Image {
     fn drop(&mut self) {
