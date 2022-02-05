@@ -4,6 +4,16 @@ use std::os::raw::c_char;
 use crate::error::Error;
 use crate::Image;
 
+macro_rules! as_mut {
+    ($expr:expr $(,)?) => {
+        if let Some(out) = $expr.as_mut() {
+            out
+        } else {
+            return ErrorCode::NullPtr as i32;
+        }
+    };
+}
+
 #[derive(Default)]
 pub struct Context {
     last_error: Option<Error>,
@@ -18,7 +28,7 @@ pub unsafe extern "C" fn context_new() -> *mut Context {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn context_destroy(img: *mut Context) {
+pub unsafe extern "C" fn context_drop(img: *mut Context) {
     Box::from_raw(img);
 }
 
@@ -58,7 +68,7 @@ pub unsafe extern "C" fn last_error_message(ctx: *mut Context) -> *mut c_char {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn error_message_destroy(s: *mut c_char) {
+pub unsafe extern "C" fn error_message_drop(s: *mut c_char) {
     if s.is_null() {
         return;
     }
@@ -69,7 +79,6 @@ pub unsafe extern "C" fn error_message_destroy(s: *mut c_char) {
 #[no_mangle]
 unsafe fn alloc(size: usize) -> *mut u8 {
     use std::alloc::{alloc, Layout};
-
     let align = std::mem::align_of::<usize>();
     let layout = Layout::from_size_align_unchecked(size, align);
     alloc(layout)
@@ -85,7 +94,12 @@ pub unsafe fn dealloc(ptr: *mut u8, size: usize) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn image_destroy(img: *mut Image) {
+pub unsafe extern "C" fn image_new() -> *mut Image {
+    Image::new(Vec::new(), crate::ImageFormat::RGB8, 0, 0).into_raw()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn image_drop(img: *mut Image) {
     Box::from_raw(img);
 }
 
@@ -96,25 +110,20 @@ pub unsafe extern "C" fn resize(
     new_width: u32,
     new_height: u32,
     maintain_aspect: bool,
-) -> *mut Image {
-    let ctx: &mut Context = if let Some(ctx) = ctx.as_mut() {
-        ctx
-    } else {
-        return std::ptr::null_mut();
-    };
-
-    let img: &Image = if let Some(img) = img.as_mut() {
-        img
-    } else {
-        ctx.last_error = Some(Error::NullPtr);
-        return std::ptr::null_mut();
-    };
+    out: *mut Image,
+) -> i32 {
+    let ctx: &mut Context = as_mut!(ctx);
+    let img: &mut Image = as_mut!(img);
+    let out: &mut Image = as_mut!(out);
 
     match crate::resize::resize(img, new_width, new_height, maintain_aspect) {
-        Ok(img) => img.into_raw(),
+        Ok(img) => {
+            *out = img;
+            0
+        }
         Err(err) => {
             ctx.last_error = Some(err);
-            std::ptr::null_mut()
+            ErrorCode::Resize as i32
         }
     }
 }
@@ -145,43 +154,45 @@ pub unsafe extern "C" fn jpeg_seed() -> u32 {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn jpeg_decode(ctx: *mut Context, ptr: *mut u8, size: usize) -> *mut Image {
-    let ctx: &mut Context = if let Some(ctx) = ctx.as_mut() {
-        ctx
-    } else {
-        return std::ptr::null_mut();
-    };
+pub unsafe extern "C" fn jpeg_decode(
+    ctx: *mut Context,
+    ptr: *mut u8,
+    size: usize,
+    out: *mut Image,
+) -> i32 {
+    let ctx: &mut Context = as_mut!(ctx);
+    let out: &mut Image = as_mut!(out);
+    if ptr.is_null() {
+        return ErrorCode::NullPtr as i32;
+    }
 
     let data = std::slice::from_raw_parts(ptr, size);
     match crate::jpeg::decode(data) {
-        Ok(img) => img.into_raw(),
+        Ok(img) => {
+            *out = img;
+            0
+        }
         Err(err) => {
             ctx.last_error = Some(err);
-            std::ptr::null_mut()
+            ErrorCode::Decode as i32
         }
     }
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn jpeg_encode(ctx: *mut Context, img: *mut Image) -> *mut Image {
-    let ctx: &mut Context = if let Some(ctx) = ctx.as_mut() {
-        ctx
-    } else {
-        return std::ptr::null_mut();
-    };
-
-    let img: &Image = if let Some(img) = img.as_ref() {
-        img
-    } else {
-        ctx.last_error = Some(Error::NullPtr);
-        return std::ptr::null_mut();
-    };
+pub unsafe extern "C" fn jpeg_encode(ctx: *mut Context, img: *mut Image, out: *mut Image) -> i32 {
+    let ctx: &mut Context = as_mut!(ctx);
+    let img: &mut Image = as_mut!(img);
+    let out: &mut Image = as_mut!(out);
 
     match crate::jpeg::encode(img, &ctx.jpeg_encode_options) {
-        Ok(img) => img.into_raw(),
+        Ok(img) => {
+            *out = img;
+            0
+        }
         Err(err) => {
             ctx.last_error = Some(err);
-            std::ptr::null_mut()
+            ErrorCode::Encode as i32
         }
     }
 }
@@ -199,43 +210,45 @@ pub unsafe extern "C" fn png_seed() -> u32 {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn png_decode(ctx: *mut Context, ptr: *mut u8, size: usize) -> *mut Image {
-    let ctx: &mut Context = if let Some(ctx) = ctx.as_mut() {
-        ctx
-    } else {
-        return std::ptr::null_mut();
-    };
+pub unsafe extern "C" fn png_decode(
+    ctx: *mut Context,
+    ptr: *mut u8,
+    size: usize,
+    out: *mut Image,
+) -> i32 {
+    let ctx: &mut Context = as_mut!(ctx);
+    let out: &mut Image = as_mut!(out);
+    if ptr.is_null() {
+        return ErrorCode::NullPtr as i32;
+    }
 
     let data = std::slice::from_raw_parts(ptr, size);
     match crate::png::decode(data) {
-        Ok(img) => img.into_raw(),
+        Ok(img) => {
+            *out = img;
+            0
+        }
         Err(err) => {
             ctx.last_error = Some(err);
-            std::ptr::null_mut()
+            ErrorCode::Decode as i32
         }
     }
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn png_encode(ctx: *mut Context, img: *mut Image) -> *mut Image {
-    let ctx: &mut Context = if let Some(ctx) = ctx.as_mut() {
-        ctx
-    } else {
-        return std::ptr::null_mut();
-    };
-
-    let img: &Image = if let Some(img) = img.as_ref() {
-        img
-    } else {
-        ctx.last_error = Some(Error::NullPtr);
-        return std::ptr::null_mut();
-    };
+pub unsafe extern "C" fn png_encode(ctx: *mut Context, img: *mut Image, out: *mut Image) -> i32 {
+    let ctx: &mut Context = as_mut!(ctx);
+    let img: &mut Image = as_mut!(img);
+    let out: &mut Image = as_mut!(out);
 
     match crate::png::encode(img) {
-        Ok(img) => img.into_raw(),
+        Ok(img) => {
+            *out = img;
+            0
+        }
         Err(err) => {
             ctx.last_error = Some(err);
-            std::ptr::null_mut()
+            ErrorCode::Encode as i32
         }
     }
 }
@@ -246,25 +259,19 @@ pub unsafe extern "C" fn avif_seed() -> u32 {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn avif_encode(ctx: *mut Context, img: *mut Image) -> *mut Image {
-    let ctx: &mut Context = if let Some(ctx) = ctx.as_mut() {
-        ctx
-    } else {
-        return std::ptr::null_mut();
-    };
-
-    let img: &Image = if let Some(img) = img.as_ref() {
-        img
-    } else {
-        ctx.last_error = Some(Error::NullPtr);
-        return std::ptr::null_mut();
-    };
+pub unsafe extern "C" fn avif_encode(ctx: *mut Context, img: *mut Image, out: *mut Image) -> i32 {
+    let ctx: &mut Context = as_mut!(ctx);
+    let img: &mut Image = as_mut!(img);
+    let out: &mut Image = as_mut!(out);
 
     match crate::avif::encode(img, &ctx.avif_encode_options) {
-        Ok(img) => img.into_raw(),
+        Ok(img) => {
+            *out = img;
+            0
+        }
         Err(err) => {
             ctx.last_error = Some(err);
-            std::ptr::null_mut()
+            ErrorCode::Decode as i32
         }
     }
 }
@@ -289,25 +296,19 @@ pub unsafe extern "C" fn webp_seed() -> u32 {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn webp_encode(ctx: *mut Context, img: *mut Image) -> *mut Image {
-    let ctx: &mut Context = if let Some(ctx) = ctx.as_mut() {
-        ctx
-    } else {
-        return std::ptr::null_mut();
-    };
-
-    let img: &Image = if let Some(img) = img.as_ref() {
-        img
-    } else {
-        ctx.last_error = Some(Error::NullPtr);
-        return std::ptr::null_mut();
-    };
+pub unsafe extern "C" fn webp_encode(ctx: *mut Context, img: *mut Image, out: *mut Image) -> i32 {
+    let ctx: &mut Context = as_mut!(ctx);
+    let img: &mut Image = as_mut!(img);
+    let out: &mut Image = as_mut!(out);
 
     match crate::webp::encode(img, &ctx.webp_encode_options) {
-        Ok(img) => img.into_raw(),
+        Ok(img) => {
+            *out = img;
+            0
+        }
         Err(err) => {
             ctx.last_error = Some(err);
-            std::ptr::null_mut()
+            ErrorCode::Decode as i32
         }
     }
 }
@@ -317,4 +318,19 @@ pub unsafe extern "C" fn webp_set_encode_quality(ctx: *mut Context, quality: u16
     if let Some(ctx) = ctx.as_mut() {
         ctx.webp_encode_options.quality = quality;
     }
+}
+
+#[repr(i32)]
+pub enum ErrorCode {
+    /// Received an unexpected null pointer.
+    NullPtr = -1,
+
+    /// Failed to decode image.
+    Decode = -2,
+
+    /// Failed to encode image.
+    Encode = -3,
+
+    /// Failed to resize image.
+    Resize = -4,
 }
