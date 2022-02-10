@@ -89,6 +89,9 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
                     // first row becomes -> first column starting at the bottom
                     // first row + 1 becomes -> first column + 1 starting at the bottom
                     // ... and so on
+                    // but starting at the bottom, thus mirror the row
+                    rotate180::<3>(&mut row[..]);
+
                     let y_from = output_scanline;
                     let x_to = y_from;
                     for x_from in 0..(width as usize) {
@@ -213,6 +216,7 @@ unsafe extern "C" fn output_message(_: &mut jpeg_common_struct) {
     // do nothing
 }
 
+#[derive(Debug)]
 enum Rotation {
     R90,
     R180,
