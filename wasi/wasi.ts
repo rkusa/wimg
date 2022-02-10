@@ -3,6 +3,8 @@ const ERRNO_BADF = 8;
 
 export default class WASI {
   private memory?: WebAssembly.Memory;
+  private stdoutBuf: string = "";
+  private stderrBuf: string = "";
 
   private constructor() {}
 
@@ -87,15 +89,34 @@ export default class WASI {
       const data = new Uint8Array(this.memory.buffer, dataOffset, dataLength);
       const s = decoder.decode(data);
       nwritten += data.byteLength;
-      switch (fd) {
-        case 1: // stdout
-          console.log(s);
-          break;
-        case 2: // stderr
-          console.error(s);
-          break;
-        default:
-          return ERRNO_BADF;
+
+      if (s.endsWith("\n")) {
+        switch (fd) {
+          case 1: // stdout
+            console.log(this.stdoutBuf + s.replace(/\r?\n$/, ""));
+            this.stdoutBuf = "";
+            break;
+          case 2: // stderr
+            console.error(this.stderrBuf + s.replace(/\r?\n$/, ""));
+            this.stderrBuf = "";
+            break;
+          default:
+            return ERRNO_BADF;
+        }
+      } else {
+        // `console.*` always adds a newline which messes up the output. As a workaround, buffer
+        // everything until a newline is discovered. This is not optimal as certain output might
+        // get lost, but will suffice for now.
+        switch (fd) {
+          case 1: // stdout
+            this.stdoutBuf += s;
+            break;
+          case 2: // stderr
+            this.stderrBuf += s;
+            break;
+          default:
+            return ERRNO_BADF;
+        }
       }
     }
 
