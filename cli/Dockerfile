@@ -4,13 +4,13 @@ RUN apt-get update && apt-get install -y \
     valgrind \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/src/wimg-cli
-ADD . .
-RUN --mount=type=cache,uid=1000,gid=1000,target=/usr/local/cargo/git \
-    --mount=type=cache,uid=1000,gid=1000,target=/usr/local/cargo/registry \
-    --mount=type=cache,sharing=private,uid=1000,gid=1000,target=/usr/src/wimg-cli/target \
-    cargo build && cp /usr/src/wimg-cli/target/debug/wimg-cli /usr/bin/
-ADD products products
+ADD . /usr/src/wimg
+WORKDIR /usr/src/wimg
+RUN --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,sharing=private,target=/usr/src/wimg/target \
+    cargo build --release -p wimg-cli --no-default-features && cp target/release/wimg-cli /usr/bin/
+ADD cli/products products
 
-ADD entrypoint.sh .
+ADD cli/entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]

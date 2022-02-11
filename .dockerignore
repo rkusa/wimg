@@ -1,0 +1,6 @@
+/cli/out
+/target
+/wasi-sdk
+/wimg
+/wasi
+/worker

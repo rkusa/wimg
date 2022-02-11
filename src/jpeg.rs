@@ -176,7 +176,7 @@ pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
         jpeg_finish_compress(&mut cinfo);
         jpeg_destroy_compress(&mut cinfo);
 
-        let buffer = std::slice::from_raw_parts(outbuffer, outsize as usize).to_vec();
+        let buffer = Vec::from_raw_parts(outbuffer, outsize as usize, outsize as usize);
         Image::new(buffer, ImageFormat::JPEG, img.width, img.height)
     })
     .map_err(|err| Error::Jpeg(err.downcast::<String>().unwrap_or_default()))

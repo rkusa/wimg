@@ -1,6 +1,7 @@
 .*
 !.gitignore
 !.cargo
+!.dockerignore
 target
 node_modules
 /wasi-sdk*
