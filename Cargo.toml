@@ -10,6 +10,9 @@ crate-type = [
   "staticlib",
 ] # needs to be staticlib when building for e.g. Go
 
+[workspace]
+members = ["cli"]
+
 # optimize for small code size
 [profile.release]
 opt-level = "s"
