@@ -7,7 +7,7 @@ use std::time::Instant;
 use std::{env, error, fmt, fs, process};
 
 use clap::Parser;
-use rayon::prelude::*;
+use parallel::*;
 
 #[derive(Debug, Parser)]
 #[clap(about, version, author)]
@@ -429,6 +429,33 @@ impl<'a> From<&'a AvifOptions> for wimg::avif::EncodeOptions {
         Self {
             quality: opts.quality,
             speed: opts.speed,
+        }
+    }
+}
+
+#[cfg(feature = "parallel")]
+mod parallel {
+    pub use rayon::prelude::*;
+}
+
+#[cfg(not(feature = "parallel"))]
+mod parallel {
+    pub trait IntoRefIterator<'data> {
+        type Iter: IntoIterator<Item = Self::Item>;
+        type Item: Send + 'data;
+        fn par_iter(&'data self) -> Self::Iter;
+    }
+
+    impl<'data, I: 'data + ?Sized> IntoRefIterator<'data> for I
+    where
+        &'data I: IntoIterator,
+        <&'data I as IntoIterator>::Item: Send,
+    {
+        type Iter = <&'data I as IntoIterator>::IntoIter;
+        type Item = <&'data I as IntoIterator>::Item;
+
+        fn par_iter(&'data self) -> Self::Iter {
+            self.into_iter()
         }
     }
 }
