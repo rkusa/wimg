@@ -248,6 +248,8 @@ fn extract_rotation(data: &[u8]) -> Option<Rotation> {
             break;
         }
 
+        offset += size;
+
         let app1 = &app1[HEADER.len()..];
         let is_be = app1[0..2] == [0x4d, 0x4d];
 
