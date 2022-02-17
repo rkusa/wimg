@@ -34,6 +34,3 @@ cbindgen = "0.20"
 [features]
 default = []
 ffi = []
-
-[patch.crates-io]
-ravif = { git = "https://github.com/rkusa/cavif-rs.git", branch = "wasi" }
