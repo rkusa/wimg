@@ -156,7 +156,7 @@ pub unsafe extern "C" fn jpeg_seed() -> u32 {
 #[no_mangle]
 pub unsafe extern "C" fn jpeg_decode(
     ctx: *mut Context,
-    ptr: *mut u8,
+    ptr: *const u8,
     size: usize,
     out: *mut Image,
 ) -> i32 {
@@ -212,7 +212,7 @@ pub unsafe extern "C" fn png_seed() -> u32 {
 #[no_mangle]
 pub unsafe extern "C" fn png_decode(
     ctx: *mut Context,
-    ptr: *mut u8,
+    ptr: *const u8,
     size: usize,
     out: *mut Image,
 ) -> i32 {

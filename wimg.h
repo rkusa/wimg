@@ -47,7 +47,7 @@ uint64_t hash(uint8_t *ptr, uintptr_t size, uint32_t seed);
 
 uint32_t jpeg_seed(void);
 
-int32_t jpeg_decode(struct Context *ctx, uint8_t *ptr, uintptr_t size, struct Image *out);
+int32_t jpeg_decode(struct Context *ctx, const uint8_t *ptr, uintptr_t size, struct Image *out);
 
 int32_t jpeg_encode(struct Context *ctx, struct Image *img, struct Image *out);
 
@@ -55,7 +55,7 @@ void jpeg_set_encode_quality(struct Context *ctx, uint16_t quality);
 
 uint32_t png_seed(void);
 
-int32_t png_decode(struct Context *ctx, uint8_t *ptr, uintptr_t size, struct Image *out);
+int32_t png_decode(struct Context *ctx, const uint8_t *ptr, uintptr_t size, struct Image *out);
 
 int32_t png_encode(struct Context *ctx, struct Image *img, struct Image *out);
 
