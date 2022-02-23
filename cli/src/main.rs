@@ -43,6 +43,10 @@ struct Args {
     #[clap(long, short)]
     format: Vec<OutputFormat>,
 
+    /// Maintain the original image aspect.
+    #[clap(long)]
+    maintain_aspect: bool,
+
     #[clap(flatten)]
     jpeg: JpegOptions,
 
@@ -243,7 +247,7 @@ fn main() {
                 &image,
                 args.width * pd as u32,
                 args.height * pd as u32,
-                true,
+                args.maintain_aspect,
             ) {
                 Ok(image) => image,
                 Err(err) => {
