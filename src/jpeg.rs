@@ -235,20 +235,20 @@ fn extract_rotation(data: &[u8]) -> Option<Rotation> {
         }
 
         // ignore any marker except the application marker 1 (used by Exif)
-        let size = usize::from(u16::from_be_bytes([marker[2], marker[3]])) - 2;
+        let size = usize::from(u16::from_be_bytes([marker[2], marker[3]]));
         if marker[1] != 0xE1 {
-            offset += size;
+            offset += size + 2;
             continue;
         }
 
-        let app1 = &data[offset + 4..offset + 4 + size];
+        let app1 = &data[offset + 4..offset + 4 + (size - 2)];
         const HEADER: &[u8] = b"Exif\0\0";
         if !app1.starts_with(HEADER) {
             // not exif after all
             break;
         }
 
-        offset += size;
+        offset += size + 2;
 
         let app1 = &app1[HEADER.len()..];
         let is_be = app1[0..2] == [0x4d, 0x4d];
