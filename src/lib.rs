@@ -4,7 +4,7 @@ pub mod avif;
 mod crop;
 pub mod error;
 #[cfg(feature = "ffi")]
-mod ffi;
+pub mod ffi;
 pub mod hash;
 pub mod jpeg;
 pub mod png;
