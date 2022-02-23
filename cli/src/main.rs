@@ -94,7 +94,6 @@ enum OutputFormat {
 pub struct Variant {
     width: u32,
     height: u32,
-    pixel_density: u8,
     formats: BTreeMap<String, BTreeMap<String, String>>,
 }
 
@@ -323,7 +322,6 @@ fn main() {
                     let variant = variants.entry(variant.clone()).or_insert_with(|| Variant {
                         width: image.width(),
                         height: image.height(),
-                        pixel_density: pd,
                         formats: Default::default(),
                     });
                     let pixel_densities = variant
