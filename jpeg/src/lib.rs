@@ -4,8 +4,8 @@ use std::os::raw::c_int;
 use std::{error, fmt, mem};
 
 pub use mozjpeg_sys::{
-    boolean, jpeg_compress_struct, jpeg_decompress_struct, jpeg_error_mgr, jpeg_std_error,
-    J_COLOR_SPACE,
+    boolean, jpeg_common_struct, jpeg_compress_struct, jpeg_decompress_struct, jpeg_error_mgr,
+    jpeg_std_error, J_COLOR_SPACE,
 };
 use mozjpeg_sys::{c_ulong, JDIMENSION, JPEG_LIB_VERSION, JSAMPARRAY, JSAMPARRAY_MUT};
 
@@ -16,6 +16,13 @@ pub use mozjpeg_sys::jpeg_set_quality;
 pub struct JpegResult {
     ok: bool,
     err: [u8; 200],
+}
+
+#[repr(C)]
+pub struct wimg_error_mgr {
+    pub r#pub: jpeg_error_mgr,
+    // `jmp_buf` size is arch dependent, so over-allocating here just in case
+    pub setjmp_buffer: [u64; 64],
 }
 
 extern "C" {
@@ -72,7 +79,7 @@ extern "C" {
     ) -> JpegResult;
 
     #[cfg(not(target_family = "wasm"))]
-    pub fn throwing_error_mgr(err: &mut jpeg_error_mgr) -> &mut jpeg_error_mgr;
+    pub fn throwing_error_mgr(err: &mut wimg_error_mgr) -> &mut jpeg_error_mgr;
 }
 
 pub unsafe fn try_jpeg_create_decompress(dinfo: *mut jpeg_decompress_struct) -> JpegResult {

@@ -18,12 +18,15 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
     unsafe {
         let mut cinfo: jpeg_decompress_struct = std::mem::zeroed();
 
-        let mut err: jpeg_error_mgr = std::mem::zeroed();
+        let mut err: wimg_error_mgr = std::mem::zeroed();
         #[cfg(not(target_family = "wasm"))]
-        throwing_error_mgr(&mut err);
+        {
+            cinfo.common.err = throwing_error_mgr(&mut err);
+        }
         #[cfg(target_family = "wasm")]
-        jpeg_std_error(&mut err);
-        cinfo.common.err = &mut err;
+        {
+            cinfo.common.err = jpeg_std_error(&mut err.r#pub);
+        }
 
         try_jpeg_create_decompress(&mut cinfo).into_result()?;
 
@@ -149,12 +152,15 @@ pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
     unsafe {
         let mut cinfo: jpeg_compress_struct = std::mem::zeroed();
 
-        let mut err: jpeg_error_mgr = std::mem::zeroed();
+        let mut err: wimg_error_mgr = std::mem::zeroed();
         #[cfg(not(target_family = "wasm"))]
-        throwing_error_mgr(&mut err);
+        {
+            cinfo.common.err = throwing_error_mgr(&mut err);
+        }
         #[cfg(target_family = "wasm")]
-        jpeg_std_error(&mut err);
-        cinfo.common.err = &mut err;
+        {
+            cinfo.common.err = jpeg_std_error(&mut err.r#pub);
+        }
 
         try_jpeg_create_compress(&mut cinfo).into_result()?;
 
