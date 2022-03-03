@@ -10,17 +10,18 @@ build_docker:
 	docker run --rm --platform linux/amd64 --user "$(shell id -u)":"$(shell id -g)" \
 		-v $(shell pwd):/usr/src/mozjpeg -w /usr/src/mozjpeg mozjpeg-builder cargo build --release
 
-build_linux_musl: build_linux_musl_x86_64 build_linux_musl_aarch64
+build_linux: build_x86_64_linux_musl build_aarch64_linux_musl
 
-build_linux_musl_x86_64:
+build_x86_64_linux_musl:
 	TARGET_CC=x86_64-linux-musl-gcc \
-	RUSTFLAGS="-C linker=x86_64-linux-musl-gcc -C target-feature=-crt-static" \
-		cross build --release --target x86_64-unknown-linux-musl --features ffi
+	RUSTFLAGS="-C linker=x86_64-linux-musl-gcc" \
+		cargo +1.58 build --release --target x86_64-unknown-linux-musl --features ffi
+#	cargo zigbuild --release --target x86_64-unknown-linux-musl --features ffi
 
-build_linux_musl_aarch64:
+build_aarch64_linux_musl:
 	TARGET_CC=aarch64-linux-musl-gcc \
 	RUSTFLAGS="-C linker=aarch64-linux-musl-gcc -C target-feature=-crt-static" \
-		cross build --release --target aarch64-unknown-linux-musl --features ffi
+		cargo build --release --target aarch64-unknown-linux-musl --features ffi
 
 .PHONY: test
 test:
