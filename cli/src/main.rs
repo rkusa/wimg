@@ -320,8 +320,8 @@ fn main() {
                     let mut manifest = manifest.lock().unwrap();
                     let variants = manifest.entry(name.to_string()).or_default();
                     let variant = variants.entry(variant.clone()).or_insert_with(|| Variant {
-                        width: image.width(),
-                        height: image.height(),
+                        width: image.width() / pd as u32,
+                        height: image.height() / pd as u32,
                         formats: Default::default(),
                     });
                     let pixel_densities = variant
