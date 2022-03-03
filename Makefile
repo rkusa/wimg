@@ -15,12 +15,12 @@ build_linux_musl: build_linux_musl_x86_64 build_linux_musl_aarch64
 build_linux_musl_x86_64:
 	TARGET_CC=x86_64-linux-musl-gcc \
 	RUSTFLAGS="-C linker=x86_64-linux-musl-gcc -C target-feature=-crt-static" \
-		cargo build --release --target x86_64-unknown-linux-musl --features ffi
+		cross build --release --target x86_64-unknown-linux-musl --features ffi
 
 build_linux_musl_aarch64:
 	TARGET_CC=aarch64-linux-musl-gcc \
 	RUSTFLAGS="-C linker=aarch64-linux-musl-gcc -C target-feature=-crt-static" \
-		cargo build --release --target aarch64-unknown-linux-musl --features ffi
+		cross build --release --target aarch64-unknown-linux-musl --features ffi
 
 .PHONY: test
 test:
