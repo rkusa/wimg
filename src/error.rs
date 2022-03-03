@@ -5,7 +5,7 @@ pub enum Error {
     #[error("failed to resize image")]
     Resize(#[from] resize::Error),
     #[error("failed to process JPEG image: {0}")]
-    Jpeg(Box<String>),
+    Jpeg(#[from] jpeg::JpegError),
     #[error("failed to process PNG image")]
     Png(#[from] crate::png::PngError),
     #[error("failed to process AVIF image")]

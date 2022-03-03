@@ -1,8 +1,9 @@
 use std::mem;
+use std::os::raw::{c_int, c_ulong};
 
 use crate::error::Error;
 use crate::{Image, ImageFormat};
-use mozjpeg_sys::*;
+use jpeg::*;
 
 pub fn seed() -> u32 {
     0
@@ -14,24 +15,25 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
     // extract rotation from Exif data
     let rotation = extract_rotation(data);
 
-    std::panic::catch_unwind(|| unsafe {
+    unsafe {
         let mut cinfo: jpeg_decompress_struct = std::mem::zeroed();
 
         let mut err: jpeg_error_mgr = std::mem::zeroed();
+        #[cfg(not(target_family = "wasm"))]
+        throwing_error_mgr(&mut err);
+        #[cfg(target_family = "wasm")]
         jpeg_std_error(&mut err);
-        err.error_exit = Some(error_exit);
-        err.output_message = Some(output_message);
         cinfo.common.err = &mut err;
 
-        jpeg_create_decompress(&mut cinfo);
+        try_jpeg_create_decompress(&mut cinfo).into_result()?;
 
-        jpeg_mem_src(&mut cinfo, data.as_ptr(), data.len() as c_ulong);
-        jpeg_read_header(&mut cinfo, true as boolean);
+        try_jpeg_mem_src(&mut cinfo, data.as_ptr(), data.len() as c_ulong).into_result()?;
+        try_jpeg_read_header(&mut cinfo, true as boolean).into_result()?;
 
         // println!("width={}, height={}", cinfo.image_width, cinfo.image_height);
 
         cinfo.out_color_space = J_COLOR_SPACE::JCS_RGB;
-        jpeg_start_decompress(&mut cinfo);
+        try_jpeg_start_decompress(&mut cinfo).into_result()?;
 
         let mut width = cinfo.image_width;
         let mut height = cinfo.image_height;
@@ -49,7 +51,8 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
                 while cinfo.output_scanline < cinfo.output_height {
                     let output_scanline = cinfo.output_scanline as usize;
                     let mut jsamparray = [row.as_mut_ptr()];
-                    jpeg_read_scanlines(&mut cinfo, jsamparray.as_mut_ptr(), 1);
+                    try_jpeg_read_scanlines(&mut cinfo, jsamparray.as_mut_ptr(), 1)
+                        .into_result()?;
 
                     // first row becomes -> last column
                     // first row + 1 becomes -> last column - 1
@@ -72,7 +75,8 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
                     let offset =
                         (cinfo.image_height - 1 - cinfo.output_scanline) as usize * row_stride;
                     let mut jsamparray = [buffer[offset..].as_mut_ptr()];
-                    jpeg_read_scanlines(&mut cinfo, jsamparray.as_mut_ptr(), 1);
+                    try_jpeg_read_scanlines(&mut cinfo, jsamparray.as_mut_ptr(), 1)
+                        .into_result()?;
 
                     // mirror row pixels
                     rotate180::<3>(&mut buffer[offset..offset + row_stride]);
@@ -84,7 +88,8 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
                 while cinfo.output_scanline < cinfo.output_height {
                     let output_scanline = cinfo.output_scanline as usize;
                     let mut jsamparray = [row.as_mut_ptr()];
-                    jpeg_read_scanlines(&mut cinfo, jsamparray.as_mut_ptr(), 1);
+                    try_jpeg_read_scanlines(&mut cinfo, jsamparray.as_mut_ptr(), 1)
+                        .into_result()?;
 
                     // first row becomes -> first column starting at the bottom
                     // first row + 1 becomes -> first column + 1 starting at the bottom
@@ -108,17 +113,17 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
                 while cinfo.output_scanline < cinfo.output_height {
                     let offset = cinfo.output_scanline as usize * row_stride;
                     let mut jsamparray = [buffer[offset..].as_mut_ptr()];
-                    jpeg_read_scanlines(&mut cinfo, jsamparray.as_mut_ptr(), 1);
+                    try_jpeg_read_scanlines(&mut cinfo, jsamparray.as_mut_ptr(), 1)
+                        .into_result()?;
                 }
             }
         }
 
-        jpeg_finish_decompress(&mut cinfo);
-        jpeg_destroy_decompress(&mut cinfo);
+        try_jpeg_finish_decompress(&mut cinfo).into_result()?;
+        try_jpeg_destroy_decompress(&mut cinfo).into_result()?;
 
-        Image::new(buffer, ImageFormat::RGB8, width, height)
-    })
-    .map_err(|err| Error::Jpeg(err.downcast::<String>().unwrap_or_default()))
+        Ok(Image::new(buffer, ImageFormat::RGB8, width, height))
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -141,79 +146,51 @@ pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
         }
     };
 
-    std::panic::catch_unwind(|| unsafe {
+    unsafe {
         let mut cinfo: jpeg_compress_struct = std::mem::zeroed();
 
         let mut err: jpeg_error_mgr = std::mem::zeroed();
+        #[cfg(not(target_family = "wasm"))]
+        throwing_error_mgr(&mut err);
+        #[cfg(target_family = "wasm")]
         jpeg_std_error(&mut err);
-        err.error_exit = Some(error_exit);
-        err.output_message = Some(output_message);
         cinfo.common.err = &mut err;
 
-        jpeg_create_compress(&mut cinfo);
+        try_jpeg_create_compress(&mut cinfo).into_result()?;
 
         let mut outsize = 0;
         let mut outbuffer = std::ptr::null_mut();
-        jpeg_mem_dest(&mut cinfo, &mut outbuffer, &mut outsize);
+        try_jpeg_mem_dest(&mut cinfo, &mut outbuffer, &mut outsize).into_result()?;
 
         cinfo.image_width = img.width;
         cinfo.image_height = img.height;
         cinfo.in_color_space = in_color_space;
         cinfo.input_components = input_components;
-        jpeg_set_defaults(&mut cinfo);
-        jpeg_set_quality(&mut cinfo, opts.quality as i32, true as boolean);
+        try_jpeg_set_defaults(&mut cinfo).into_result()?;
+        try_jpeg_set_quality(&mut cinfo, opts.quality as i32, true as c_int).into_result()?;
 
-        jpeg_start_compress(&mut cinfo, true as boolean);
+        try_jpeg_start_compress(&mut cinfo, true as boolean).into_result()?;
 
         let row_stride = cinfo.image_width as usize * cinfo.input_components as usize;
         let buffer = img.as_ref();
         while cinfo.next_scanline < cinfo.image_height {
             let offset = cinfo.next_scanline as usize * row_stride;
             let jsamparray = [buffer[offset..].as_ptr()];
-            jpeg_write_scanlines(&mut cinfo, jsamparray.as_ptr(), 1);
+            try_jpeg_write_scanlines(&mut cinfo, jsamparray.as_ptr(), 1).into_result()?;
         }
 
-        jpeg_finish_compress(&mut cinfo);
-        jpeg_destroy_compress(&mut cinfo);
+        try_jpeg_finish_compress(&mut cinfo).into_result()?;
+        try_jpeg_destroy_compress(&mut cinfo).into_result()?;
 
         let buffer = Vec::from_raw_parts(outbuffer, outsize as usize, outsize as usize);
-        Image::new(buffer, ImageFormat::JPEG, img.width, img.height)
-    })
-    .map_err(|err| Error::Jpeg(err.downcast::<String>().unwrap_or_default()))
+        Ok(Image::new(buffer, ImageFormat::JPEG, img.width, img.height))
+    }
 }
 
 impl Default for EncodeOptions {
     fn default() -> Self {
         Self { quality: 80 }
     }
-}
-
-unsafe extern "C" fn error_exit(cinfo: &mut jpeg_common_struct) {
-    let err = Box::new(
-        if let Some(format_message) = cinfo.err.as_ref().and_then(|err| err.format_message) {
-            let buffer = std::mem::zeroed();
-            format_message(cinfo, &buffer);
-            let len = buffer.iter().position(|c| *c == 0).unwrap_or(buffer.len());
-            String::from_utf8_lossy(&buffer[..len]).to_string()
-        } else {
-            String::from("mozjpeg failed")
-        },
-    );
-
-    // jpeg_destroy
-    if !cinfo.mem.is_null() {
-        if let Some(self_destruct) = (*cinfo.mem).self_destruct {
-            self_destruct(cinfo);
-        }
-    }
-    cinfo.mem = std::ptr::null_mut();
-    cinfo.global_state = 0;
-
-    std::panic::resume_unwind(err);
-}
-
-unsafe extern "C" fn output_message(_: &mut jpeg_common_struct) {
-    // do nothing
 }
 
 #[derive(Debug)]

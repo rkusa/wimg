@@ -1,10 +1,11 @@
+use std::os::raw::c_int;
+
 use libwebp_sys::{
     WebPConfig, WebPConfigPreset, WebPEncode, WebPMemoryWrite, WebPMemoryWriter,
     WebPMemoryWriterClear, WebPMemoryWriterInit, WebPPicture, WebPPictureFree,
     WebPPictureImportRGB, WebPPictureImportRGBA, WebPPictureInit, WebPValidateConfig,
     WEBP_PRESET_PHOTO,
 };
-use mozjpeg_sys::c_int;
 
 use crate::error::Error;
 use crate::{Image, ImageFormat};
