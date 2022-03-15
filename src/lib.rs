@@ -74,7 +74,7 @@ impl Image {
     }
 
     #[cfg(not(feature = "ffi"))]
-    fn new(data: Vec<u8>, format: ImageFormat, width: u32, height: u32) -> Self {
+    pub fn new(data: Vec<u8>, format: ImageFormat, width: u32, height: u32) -> Self {
         Self {
             data,
             format,
