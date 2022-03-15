@@ -90,6 +90,16 @@ impl Image {
     pub fn height(&self) -> u32 {
         self.height
     }
+
+    pub fn mime_type(&self) -> &'static str {
+        match self.format {
+            ImageFormat::RGB8 | ImageFormat::RGBA8 => "application/octet-stream",
+            ImageFormat::JPEG => "image/jpeg",
+            ImageFormat::PNG => "image/png",
+            ImageFormat::AVIF => "image/avif",
+            ImageFormat::WEBP => "image/webp",
+        }
+    }
 }
 
 impl PixelFormat {
