@@ -100,6 +100,15 @@ impl Image {
             ImageFormat::WEBP => "image/webp",
         }
     }
+
+    pub fn into_vec(self) -> Vec<u8> {
+        #[cfg(feature = "ffi")]
+        unsafe {
+            Vec::from_raw_parts(self.ptr.as_ptr(), self.len as usize, self.cap as usize)
+        }
+        #[cfg(not(feature = "ffi"))]
+        self.data
+    }
 }
 
 impl PixelFormat {
