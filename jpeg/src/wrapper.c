@@ -88,7 +88,7 @@ struct wimg_error_mgr {
 };
 
 struct result {
-  boolean ok;
+  int ok;
   char err[200];
 };
 

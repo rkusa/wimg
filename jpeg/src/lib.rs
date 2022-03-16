@@ -14,7 +14,7 @@ pub use mozjpeg_sys::jpeg_set_quality;
 #[repr(C)]
 #[must_use]
 pub struct JpegResult {
-    ok: bool,
+    ok: i32,
     err: [u8; 200],
 }
 
@@ -111,7 +111,7 @@ impl error::Error for JpegError {}
 
 impl JpegResult {
     pub fn into_result(self) -> Result<(), JpegError> {
-        if self.ok {
+        if self.ok == 1 {
             Ok(())
         } else {
             let len = self
