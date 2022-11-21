@@ -29,7 +29,7 @@ pub unsafe extern "C" fn context_new() -> *mut Context {
 
 #[no_mangle]
 pub unsafe extern "C" fn context_drop(img: *mut Context) {
-    Box::from_raw(img);
+    let _ = Box::from_raw(img);
 }
 
 #[no_mangle]
@@ -100,7 +100,7 @@ pub unsafe extern "C" fn image_new() -> *mut Image {
 
 #[no_mangle]
 pub unsafe extern "C" fn image_drop(img: *mut Image) {
-    Box::from_raw(img);
+    let _ = Box::from_raw(img);
 }
 
 #[no_mangle]

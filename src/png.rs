@@ -3,7 +3,7 @@ use crate::{Image, ImageFormat};
 use png::{BitDepth, ColorType, Decoder, Encoder, Transformations};
 
 pub fn seed() -> u32 {
-    0
+    1
 }
 
 pub fn decode(data: &[u8]) -> Result<Image, Error> {

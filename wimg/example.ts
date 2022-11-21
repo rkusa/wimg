@@ -1,10 +1,6 @@
 import { promises as fsp } from "fs";
 import WASI from "../wasi/wasi";
-import { webcrypto } from "crypto";
 import { decode, encode, resize, WImg, Image } from "./wimg";
-
-// @ts-expect-error
-global.crypto = webcrypto;
 
 async function run() {
   const wimg = await WASI.instantiate<WImg>(

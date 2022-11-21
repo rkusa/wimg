@@ -6,7 +6,7 @@ use crate::{Image, ImageFormat};
 use jpeg::*;
 
 pub fn seed() -> u32 {
-    0
+    1
 }
 
 pub fn decode(data: &[u8]) -> Result<Image, Error> {
@@ -66,7 +66,7 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
                         let y_to = x_from;
                         let from = x_from * 3;
                         let to = (x_to + y_to * height as usize) * 3;
-                        (&mut buffer[to..(to + 3)]).copy_from_slice(&row[from..(from + 3)]);
+                        buffer[to..(to + 3)].copy_from_slice(&row[from..(from + 3)]);
                     }
                 }
 
@@ -106,7 +106,7 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
                         let y_to = x_from;
                         let from = x_from * 3;
                         let to = (x_to + y_to * height as usize) * 3;
-                        (&mut buffer[to..(to + 3)]).copy_from_slice(&row[from..(from + 3)]);
+                        buffer[to..(to + 3)].copy_from_slice(&row[from..(from + 3)]);
                     }
                 }
 

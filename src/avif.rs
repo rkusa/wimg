@@ -4,7 +4,7 @@ use crate::error::Error;
 use crate::{Image, ImageFormat};
 
 pub fn seed() -> u32 {
-    0
+    1
 }
 
 #[derive(Debug, Clone)]
@@ -23,9 +23,9 @@ pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
         premultiplied_alpha: false,
         color_space: ravif::ColorSpace::YCbCr,
         #[cfg(target_family = "wasm")]
-        threads: 1,
+        threads: Some(1),
         #[cfg(not(target_family = "wasm"))]
-        threads: 0,
+        threads: None,
     };
     match img.format {
         ImageFormat::RGB8 => {

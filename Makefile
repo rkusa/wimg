@@ -27,7 +27,7 @@ build_aarch64_linux_musl:
 
 .PHONY: test
 test:
-	cd wimg && npm run build && node example.mjs
+	cd wimg && pnpm run build && node example.mjs
 
 leak_test:
 	docker build --platform linux/arm64 -f cli/Dockerfile -t wimg-cli . --progress=plain

@@ -147,7 +147,7 @@ fn main() {
         };
 
         if path.is_file() {
-            let data = match fs::read(&path) {
+            let data = match fs::read(path) {
                 Ok(data) => data,
                 Err(err) => {
                     log::error!(
@@ -203,7 +203,7 @@ fn main() {
     images.par_iter().for_each(|path| {
         let path_string = path.to_string_lossy();
         log::debug!("Processing {}", path_string);
-        let data = match fs::read(&path) {
+        let data = match fs::read(path) {
             Ok(data) => data,
             Err(err) => {
                 log::error!("failed to read {} ({})", path_string, err);
@@ -287,7 +287,7 @@ fn main() {
                 log::debug!("Writing to {}", out_file.to_string_lossy());
 
                 if let Some(parent) = out_file.parent() {
-                    if let Err(err) = fs::create_dir_all(&parent) {
+                    if let Err(err) = fs::create_dir_all(parent) {
                         log::error!(
                             "failed to create directory {}: {}",
                             parent.to_string_lossy(),

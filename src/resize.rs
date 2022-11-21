@@ -6,7 +6,7 @@ use crate::{Image, ImageFormat, PixelFormat};
 use rgb::FromSlice;
 
 pub fn seed() -> u32 {
-    0
+    1
 }
 
 pub fn resize(
@@ -73,7 +73,7 @@ pub fn resize(
     //     img.width, img.height, new_width, new_height
     // );
 
-    let src: &[u8] = (&*img).as_ref();
+    let src: &[u8] = (*img).as_ref();
     let dst = match pixel_format {
         PixelFormat::RGB8 => {
             let mut resizer = resize::new(
