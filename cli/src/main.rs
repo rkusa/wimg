@@ -81,7 +81,7 @@ pub struct AvifOptions {
     pub speed: u8,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum OutputFormat {
     Avif,
     Jpeg,
@@ -279,9 +279,9 @@ fn main() {
                     .unwrap_or_default();
                 let out_file = out_file
                     .with_file_name(if pd > 1 {
-                        format!("{}-{}@{}x", file_stem, hash, pd)
+                        format!("{file_stem}-{hash}@{pd}x")
                     } else {
-                        format!("{}-{}", file_stem, hash)
+                        format!("{file_stem}-{hash}")
                     })
                     .with_extension(format.ext());
                 log::debug!("Writing to {}", out_file.to_string_lossy());
@@ -329,7 +329,7 @@ fn main() {
                         .entry(format.mime_type().to_string())
                         .or_default();
                     pixel_densities.insert(
-                        format!("{}x", pd),
+                        format!("{pd}x"),
                         out_file
                             .strip_prefix(&args.out_dir)
                             .unwrap()

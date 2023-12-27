@@ -22,18 +22,14 @@ lto = true
 jpeg = { path = "./jpeg" }
 libwebp-sys2 = { version = "0.1", features = ["1_2", "static"] }
 png = "0.17"
-ravif = "0.9"
-resize = "0.7"
+ravif = "0.11"
+resize = "0.8"
 rgb = "0.8"
 thiserror = "1.0"
 xxhash-rust = { version = "0.8", features = ["const_xxh64"] }
 
-# TODO: remove once newer version work with wasm builds again
-crossbeam-utils = { version = "=0.8.12" }
-crossbeam-epoch = { version = "=0.9.11" }
-
 [build-dependencies]
-cbindgen = "0.24"
+cbindgen = "0.26"
 
 [features]
 default = []

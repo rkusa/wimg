@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mozjpeg-sys = "1.0"
+mozjpeg-sys = "2.0"
 
 [build-dependencies]
 cc = "1.0"

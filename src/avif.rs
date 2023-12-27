@@ -16,17 +16,12 @@ pub struct EncodeOptions {
 }
 
 pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
-    let config = ravif::Config {
-        quality: opts.quality as f32,
-        alpha_quality: opts.quality as f32,
-        speed: opts.speed,
-        premultiplied_alpha: false,
-        color_space: ravif::ColorSpace::YCbCr,
-        #[cfg(target_family = "wasm")]
-        threads: Some(1),
-        #[cfg(not(target_family = "wasm"))]
-        threads: None,
-    };
+    let enc = ravif::Encoder::new()
+        .with_quality(opts.quality as f32)
+        .with_alpha_quality(opts.quality as f32)
+        .with_speed(opts.speed)
+        .with_internal_color_space(ravif::ColorSpace::YCbCr)
+        .with_num_threads(cfg!(target_family = "wasm").then_some(1));
     match img.format {
         ImageFormat::RGB8 => {
             let input = ravif::Img::new(
@@ -34,15 +29,27 @@ pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
                 img.width as usize,
                 img.height as usize,
             );
-            let (data, _) = ravif::encode_rgb(input, &config).map_err(Error::Avif)?;
-            Ok(Image::new(data, ImageFormat::AVIF, img.width, img.height))
+            let ravif::EncodedImage { avif_file, .. } =
+                enc.encode_rgb(input).map_err(Error::Avif)?;
+            Ok(Image::new(
+                avif_file,
+                ImageFormat::AVIF,
+                img.width,
+                img.height,
+            ))
         }
         ImageFormat::RGBA8 => {
             let data = img.as_ref().as_rgba().to_vec();
             let input = ravif::Img::new(data, img.width as usize, img.height as usize);
-            let input = ravif::cleared_alpha(input);
-            let (data, _, _) = ravif::encode_rgba(input.as_ref(), &config).map_err(Error::Avif)?;
-            Ok(Image::new(data, ImageFormat::AVIF, img.width, img.height))
+            let enc = enc.with_alpha_color_mode(ravif::AlphaColorMode::UnassociatedClean);
+            let ravif::EncodedImage { avif_file, .. } =
+                enc.encode_rgba(input.as_ref()).map_err(Error::Avif)?;
+            Ok(Image::new(
+                avif_file,
+                ImageFormat::AVIF,
+                img.width,
+                img.height,
+            ))
         }
         _ => Err(Error::Process {
             process: "encode as AVIF",

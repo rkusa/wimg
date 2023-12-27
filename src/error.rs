@@ -9,7 +9,7 @@ pub enum Error {
     #[error("failed to process PNG image")]
     Png(#[from] crate::png::PngError),
     #[error("failed to process AVIF image")]
-    Avif(#[source] Box<dyn std::error::Error + Send + Sync>),
+    Avif(#[from] ravif::Error),
     #[error("failed to process WEBP image: {0}")]
     Webp(&'static str),
     #[error("crop out of bounds")]
