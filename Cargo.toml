@@ -5,9 +5,9 @@ edition = "2021"
 
 [lib]
 crate-type = [
-  "rlib",
-  "cdylib",
-  "staticlib",
+    "rlib",
+    "cdylib",
+    "staticlib",
 ] # needs to be staticlib when building for e.g. Go
 
 [workspace]
@@ -16,7 +16,8 @@ members = ["cli", "jpeg"]
 # optimize for small code size
 [profile.release]
 opt-level = "s"
-lto = true
+# Must be off to prevent duplicate symbols when using multiple Rust static libraries
+lto = false
 
 [dependencies]
 jpeg = { path = "./jpeg" }
