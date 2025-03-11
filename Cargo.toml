@@ -21,16 +21,16 @@ lto = false
 
 [dependencies]
 jpeg = { path = "./jpeg" }
-libwebp-sys2 = { version = "0.1", features = ["1_2", "static"] }
+libwebp-sys2 = { version = "0.2", features = ["1_2", "static"] }
 png = "0.17"
 ravif = "0.11"
 resize = "0.8"
 rgb = "0.8"
-thiserror = "1.0"
+thiserror = "2.0"
 xxhash-rust = { version = "0.8", features = ["const_xxh64"] }
 
 [build-dependencies]
-cbindgen = "0.26"
+cbindgen = "0.28"
 
 [features]
 default = []
