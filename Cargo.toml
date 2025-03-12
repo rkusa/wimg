@@ -2,6 +2,7 @@
 name = "wimg"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.85"
 publish = false
 
 [lib]
@@ -22,7 +23,7 @@ lto = false
 
 [dependencies]
 jpeg = { path = "./jpeg" }
-libwebp-sys2 = { version = "0.2", features = ["1_2", "static"] }
+libwebp-sys2 = { version = "0.2", features = ["1_5", "static"] }
 png = "0.17"
 ravif = "0.11"
 resize = "0.8"
