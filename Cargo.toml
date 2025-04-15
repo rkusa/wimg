@@ -23,7 +23,11 @@ lto = false
 
 [dependencies]
 jpeg = { path = "./jpeg" }
-libwebp-sys2 = { version = "0.2", features = ["1_5", "static"] }
+libwebp-sys2 = { version = "0.2", default-features = false, features = [
+    "std",
+    "1_5",
+    "static",
+] }
 png = "0.17"
 ravif = "0.11"
 resize = "0.8"

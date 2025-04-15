@@ -1,0 +1,19 @@
+[build]
+rustflags = ["-Z", "threads=8"]
+
+[env]
+CC_aarch64-apple-darwin = "/opt/homebrew/opt/llvm/bin/clang"
+CC_x86_64-unknown-linux-musl = "/Users/rkusa/Development/wimg/.cargo/clang_x86_64_linux_musl"
+CC_aarch64-unknown-linux-musl = "/Users/rkusa/Development/wimg/.cargo/clang_aarch64_linux_musl"
+
+[target.aarch64-apple-darwin]
+linker = "/opt/homebrew/opt/llvm/bin/clang"
+rustflags = ["-Clink-arg=-fuse-ld=lld"]
+
+[target.x86_64-unknown-linux-musl]
+linker = "/Users/rkusa/Development/wimg/.cargo/clang_x86_64_linux_musl"
+rustflags = ["-Clink-arg=-fuse-ld=lld"]
+
+[target.aarch64-unknown-linux-musl]
+linker = "/Users/rkusa/Development/wimg/.cargo/clang_aarch64_linux_musl"
+rustflags = ["-Clink-arg=-fuse-ld=lld"]

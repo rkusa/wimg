@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+# brew install llvm
+# brew tap messense/macos-cross-toolchains
+# brew install aarch64-unknown-linux-musl
+# brew unlink aarch64-unknown-linux-musl
+
+/opt/homebrew/opt/llvm/bin/clang \
+    -target aarch64-unknown-linux-musl \
+    --sysroot=/opt/homebrew/opt/aarch64-unknown-linux-musl/toolchain/aarch64-unknown-linux-musl/sysroot \
+    $@

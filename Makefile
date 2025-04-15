@@ -13,17 +13,10 @@ build_docker:
 build_linux: build_x86_64_linux_musl build_aarch64_linux_musl
 
 build_x86_64_linux_musl:
-	TARGET_CC=x86_64-linux-musl-gcc \
-	TARGET_CXX=x86_64-linux-musl-g++ \
-	RUSTFLAGS="-C linker=x86_64-linux-musl-gcc" \
-		cargo build --release --target x86_64-unknown-linux-musl --features ffi
-#	cargo zigbuild --release --target x86_64-unknown-linux-musl --features ffi
+	cargo build --release --target x86_64-unknown-linux-musl --features ffi
 
 build_aarch64_linux_musl:
-	TARGET_CC=aarch64-linux-musl-gcc \
-	TARGET_CXX=aarch64-linux-musl-g++ \
-	RUSTFLAGS="-C linker=aarch64-linux-musl-gcc -C target-feature=-crt-static" \
-		cargo build --release --target aarch64-unknown-linux-musl --features ffi
+	cargo build --release --target aarch64-unknown-linux-musl --features ffi
 
 .PHONY: test
 test:
