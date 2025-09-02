@@ -28,8 +28,8 @@ libwebp-sys2 = { version = "0.2", default-features = false, features = [
     "1_5",
     "static",
 ] }
-png = "0.17"
-ravif = "0.11"
+png = "0.18"
+ravif = "0.12"
 resize = "0.8"
 rgb = "0.8"
 thiserror = "2.0"

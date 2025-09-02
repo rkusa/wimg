@@ -21,4 +21,6 @@ pub enum Error {
         process: &'static str,
         format: ImageFormat,
     },
+    #[error("image exceeds available memory")]
+    ExceedsMemory,
 }

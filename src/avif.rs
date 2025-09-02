@@ -20,7 +20,7 @@ pub fn encode(img: &Image, opts: &EncodeOptions) -> Result<Image, Error> {
         .with_quality(opts.quality as f32)
         .with_alpha_quality(opts.quality as f32)
         .with_speed(opts.speed)
-        .with_internal_color_model(ravif::ColorSpace::YCbCr)
+        .with_internal_color_model(ravif::ColorModel::YCbCr)
         .with_num_threads(cfg!(target_family = "wasm").then_some(1));
     match img.format {
         ImageFormat::RGB8 => {

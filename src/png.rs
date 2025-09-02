@@ -1,3 +1,5 @@
+use std::io::Cursor;
+
 use crate::error::Error;
 use crate::{Image, ImageFormat};
 use png::{BitDepth, ColorType, Decoder, Encoder, Transformations};
@@ -7,6 +9,7 @@ pub fn seed() -> u32 {
 }
 
 pub fn decode(data: &[u8]) -> Result<Image, Error> {
+    let data = Cursor::new(data);
     let mut decoder = Decoder::new(data);
     decoder.set_transformations(Transformations::STRIP_16 | Transformations::EXPAND);
     let mut reader = decoder.read_info().map_err(PngError::from)?;
@@ -14,7 +17,7 @@ pub fn decode(data: &[u8]) -> Result<Image, Error> {
         return Err(PngError::UnsupportedAnimation.into());
     }
 
-    let mut buf = vec![0; reader.output_buffer_size()];
+    let mut buf = vec![0; reader.output_buffer_size().ok_or(Error::ExceedsMemory)?];
     let info = reader.next_frame(&mut buf).map_err(PngError::from)?;
 
     let image_format = match info.color_type {

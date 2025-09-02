@@ -10,6 +10,9 @@ build_docker:
 	docker run --rm --platform linux/amd64 --user "$(shell id -u)":"$(shell id -g)" \
 		-v $(shell pwd):/usr/src/mozjpeg -w /usr/src/mozjpeg mozjpeg-builder cargo build --release
 
+build_macos:
+	cargo build --release --features ffi
+
 build_linux: build_x86_64_linux_musl build_aarch64_linux_musl
 
 build_x86_64_linux_musl:
